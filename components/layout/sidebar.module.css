@@ -1,0 +1,125 @@
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background: hsl(var(--sidebar-background));
+  border-right: 1px solid hsl(var(--sidebar-border));
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 40;
+}
+
+.header {
+  padding: 1.5rem;
+  border-bottom: 1px solid hsl(var(--sidebar-border));
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: hsl(var(--sidebar-foreground));
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo:hover {
+  color: hsl(var(--sidebar-primary));
+}
+
+.nav {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: calc(var(--radius) - 2px);
+  color: hsl(var(--sidebar-foreground));
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navLink:hover {
+  background: hsl(var(--sidebar-accent));
+  color: hsl(var(--sidebar-accent-foreground));
+}
+
+.navLinkActive {
+  background: hsl(var(--sidebar-accent));
+  color: hsl(var(--sidebar-accent-foreground));
+}
+
+.icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.footer {
+  padding: 1rem;
+  border-top: 1px solid hsl(var(--sidebar-border));
+}
+
+.userMenu {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.userMenu:hover {
+  background: hsl(var(--sidebar-accent));
+}
+
+.avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius);
+  background: hsl(var(--sidebar-primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: hsl(var(--sidebar-primary-foreground));
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.userName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--sidebar-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userEmail {
+  font-size: 0.75rem;
+  color: hsl(var(--sidebar-foreground) / 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

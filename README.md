@@ -11,6 +11,29 @@ AI-native dispatch system for distributed teams.
 - **Styling:** CSS Modules (no Tailwind utilities in components)
 - **UI:** shadcn/ui primitives
 
+## Quickstart
+
+```bash
+# Clone and install
+git clone <repo-url> && cd dispatch
+npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your DATABASE_URL and SESSION_SECRET
+
+# Setup database and build
+npx prisma db push
+npx prisma generate
+npm run build
+
+# Start the app
+npm start        # Production
+npm run dev      # Development
+```
+
+See [DEPLOY.md](./DEPLOY.md) for detailed deployment instructions.
+
 ## Project Structure
 
 ```

@@ -1,0 +1,17 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.mainWrapper {
+  flex: 1;
+  margin-left: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  padding: 1.5rem;
+  background: hsl(var(--background));
+}
