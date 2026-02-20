@@ -21,10 +21,11 @@ model Workspace {
   name      String
   slug      String     @unique
   ownerId   String
-  owner     User       @relation(fields: [ownerId], references: [id])
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   logEntries LogEntry[]
   createdAt DateTime   @default(now())
-  
+  updatedAt DateTime   @updatedAt
+
   @@index([ownerId])
 }
 
@@ -36,7 +37,8 @@ model LogEntry {
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
-  
+  updatedAt   DateTime @updatedAt
+
   @@index([workspaceId])
   @@index([createdAt])
 }
