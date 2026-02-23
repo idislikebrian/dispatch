@@ -1,5 +1,6 @@
 .container {
   max-width: 1200px;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
 .hero {
@@ -71,4 +72,5 @@
 .shortcut {
   flex: 1;
   min-width: 100px;
+  min-height: 40px;
 }

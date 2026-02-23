@@ -5,11 +5,11 @@ import { usePathname } from 'next/navigation';
 import styles from './sidebar.module.css';
 
 const navItems = [
-  { href: '/tasks', label: 'Tasks', icon: CheckSquareIcon },
-  { href: '/content', label: 'Content', icon: FileTextIcon },
-  { href: '/memory', label: 'Memory', icon: BrainIcon },
-  { href: '/team', label: 'Team', icon: UsersIcon },
-  { href: '/office', label: 'Office', icon: BuildingIcon },
+  { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquareIcon },
+  { href: '/dashboard/content', label: 'Content', icon: FileTextIcon },
+  { href: '/dashboard/memory', label: 'Memory', icon: BrainIcon },
+  { href: '/dashboard/team', label: 'Team', icon: UsersIcon },
+  { href: '/dashboard/office', label: 'Office', icon: BuildingIcon },
 ];
 
 export function Sidebar() {
@@ -18,10 +18,11 @@ export function Sidebar() {
   return (
     <aside className={styles.sidebar}>
       <header className={styles.header}>
-        <Link href="/" className={styles.logo}>
-          <ZapIcon className={styles.icon} />
-          Dispatch
-        </Link>
+        <div className={styles.logo}>
+          <Link href="/dashboard">
+            Dispatch
+          </Link>
+        </div>
       </header>
 
       <nav className={styles.nav}>
@@ -43,13 +44,7 @@ export function Sidebar() {
       </nav>
 
       <footer className={styles.footer}>
-        <div className={styles.userMenu}>
-          <div className={styles.avatar}>U</div>
-          <div className={styles.userInfo}>
-            <span className={styles.userName}>User</span>
-            <span className={styles.userEmail}>user@dispatch.ai</span>
-          </div>
-        </div>
+        
       </footer>
     </aside>
   );

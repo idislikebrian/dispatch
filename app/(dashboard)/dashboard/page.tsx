@@ -10,13 +10,11 @@ export default function DashboardPage() {
   return (
     <div className={styles.container}>
       <div className={styles.hero}>
-        <h1 className={styles.title}>Welcome to Dispatch</h1>
-        <p className={styles.description}>
-          AI-native dispatch system for distributed teams.
-        </p>
+        <h1 className={styles.title}>Dashboard</h1>
+        <p>Eagle-eye view of operations.</p>
         <div className={styles.actions}>
-          <Button>Get Started</Button>
-          <Button variant="outline">Documentation</Button>
+          <Button>New Task</Button>
+          <Button variant="outline">Chat</Button>
         </div>
       </div>
 
@@ -63,12 +61,6 @@ export default function DashboardPage() {
             <div className={styles.shortcuts}>
               <Button variant="outline" size="sm" className={styles.shortcut}>
                 New Task
-              </Button>
-              <Button variant="outline" size="sm" className={styles.shortcut}>
-                Invite Team
-              </Button>
-              <Button variant="outline" size="sm" className={styles.shortcut}>
-                Settings
               </Button>
             </div>
           </CardContent>
