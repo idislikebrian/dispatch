@@ -1,9 +1,12 @@
 .container {
   max-width: 1200px;
+  padding: 2rem;
 }
 
 .header {
-  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .title {
@@ -11,6 +14,8 @@
   font-weight: 700;
   color: hsl(var(--foreground));
   margin: 0 0 0.5rem 0;
+
+  text-transform: uppercase;
 }
 
 .description {
@@ -23,10 +28,81 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+
 }
 
 .placeholder {
   color: hsl(var(--muted-foreground));
   font-size: 0.875rem;
   margin: 0;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+}
+
+.agentList,
+.activityList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.agentItem,
+.activityItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--light-grey);
+  font-size: 0.875rem;
+}
+
+.agentName {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+}
+
+.online {
+  background: var(--available);
+}
+
+.idle {
+  background: var(--grey);
+}
+
+.agentMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--grey);
+}
+
+.time {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.success {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--available);
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
 }
