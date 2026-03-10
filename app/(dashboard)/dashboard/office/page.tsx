@@ -5,6 +5,7 @@ import AgentStatusMap from "@/components/office/AgentStatusMap";
 import ActivityFeed from "@/components/office/ActivityFeed";
 import InterruptPanel from "@/components/office/InterruptPanel";
 import CostPanel from "@/components/office/CostPanel";
+import LiveIndicator from "@/components/office/LiveIndicator";
 import {
   Card,
   CardContent,
@@ -15,6 +16,7 @@ export default function OfficePage() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Office</h1>
+        <LiveIndicator />
       </div>
 
       <div className={styles.layout}>

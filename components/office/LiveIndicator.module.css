@@ -1,0 +1,33 @@
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+}
+
+.dot.green {
+  background-color: var(--available);
+}
+
+.dot.yellow {
+  background-color: var(--bart);
+}
+
+.dot.grey {
+  background-color: var(--grey);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--grey);
+  text-transform: uppercase;
+}
