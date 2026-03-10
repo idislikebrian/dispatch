@@ -1,0 +1,157 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mapHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 2px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+}
+
+.count {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  color: var(--grey);
+  font-weight: 400;
+}
+
+.errorBadge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  background: var(--rojo);
+  color: var(--white);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--light-grey);
+  border-top: 1px solid var(--light-grey);
+}
+
+.card {
+  background: var(--white);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-left: 3px solid transparent;
+}
+
+/* Status-based left-border accent */
+.online {
+  border-left-color: var(--available);
+}
+.idle {
+  border-left-color: var(--bart);
+}
+.error {
+  border-left-color: var(--rojo);
+}
+.offline {
+  border-left-color: var(--grey);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.agentName {
+  font-size: 0.875rem;
+  font-weight: 700;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid currentColor;
+}
+
+.label_online {
+  color: var(--available);
+}
+.label_idle {
+  color: #b08800;
+}
+.label_error {
+  color: var(--rojo);
+}
+.label_offline {
+  color: var(--grey);
+}
+
+/* Status dot */
+.statusDot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.dot_online {
+  background: var(--available);
+}
+.dot_idle {
+  background: var(--bart);
+}
+.dot_error {
+  background: var(--rojo);
+}
+.dot_offline {
+  background: var(--grey);
+}
+
+/* Meta row */
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--grey);
+}
+
+/* States */
+.empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--grey);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.errorMsg {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--rojo);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}

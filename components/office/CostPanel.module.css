@@ -1,0 +1,111 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 2px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+}
+
+.errorBadge {
+  margin-left: auto;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  background: var(--rojo);
+  color: var(--white);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.th {
+  background: var(--black);
+  color: var(--white);
+  text-align: left;
+  padding: 0.4rem 0.875rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+}
+
+.right {
+  text-align: right;
+}
+
+.row:nth-child(even) {
+  background: hsl(0 0% 97%);
+}
+
+.row:hover {
+  background: var(--cooblue);
+}
+
+.td {
+  padding: 0.5rem 0.875rem;
+  border-bottom: 1px solid var(--light-grey);
+  color: var(--black);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--grey);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.errorRow {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--rojo);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+/* Total row */
+.totalRow {
+  background: var(--black);
+}
+
+.totalRow .td {
+  border-bottom: none;
+}
+
+.totalLabel {
+  color: var(--white);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.totalVal {
+  color: var(--white);
+  font-weight: 700;
+}

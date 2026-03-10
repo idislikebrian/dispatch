@@ -1,0 +1,157 @@
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+.feedHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 2px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+}
+
+.errorBadge {
+  margin-left: auto;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  background: var(--rojo);
+  color: var(--white);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.tableWrapper {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.th {
+  position: sticky;
+  top: 0;
+  background: var(--black);
+  color: var(--white);
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.row:nth-child(even) {
+  background: hsl(0 0% 97%);
+}
+
+.row:hover {
+  background: var(--cooblue);
+}
+
+.td {
+  padding: 0.4rem 0.75rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--light-grey);
+  color: var(--black);
+  white-space: nowrap;
+}
+
+.message {
+  white-space: normal;
+  max-width: 320px;
+  word-break: break-word;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--grey);
+}
+
+/* Type tags */
+.typeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid currentColor;
+}
+
+.action {
+  color: var(--designated);
+}
+
+.error {
+  color: var(--rojo);
+}
+
+.success {
+  color: var(--available);
+}
+
+.info {
+  color: var(--grey);
+}
+
+/* Result cells */
+.resultSuccess {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--available);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.resultError {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--rojo);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.resultNeutral {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--grey);
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--grey);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+}
+
+.errorRow {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--rojo);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+}
