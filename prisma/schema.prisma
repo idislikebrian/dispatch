@@ -42,3 +42,93 @@ model LogEntry {
   @@index([workspaceId])
   @@index([createdAt])
 }
+
+// ─── Agent Telemetry ────────────────────────────────────────────────────────
+
+enum Project {
+  Cobalt
+  Caminos
+  HIGHER
+  Aluminum
+  Experimental
+}
+
+model Agent {
+  id          String            @id @default(cuid())
+  name        String            @unique
+  type        String            // e.g. "openclaw", "subagent", "cron"
+  project     Project?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  heartbeats  AgentHeartbeat[]
+  events      AgentEvent[]
+  costEvents  AgentCostEvent[]
+  interrupts  AgentInterrupt[]
+
+  @@index([project])
+}
+
+model AgentHeartbeat {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  status    String   // "online", "idle", "offline", "error"
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([agentId])
+  @@index([agentId, createdAt])
+}
+
+model AgentEvent {
+  id        String          @id @default(cuid())
+  agentId   String
+  agent     Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  type      String          // "action", "error", "info", "warning"
+  message   String
+  project   Project?
+  metadata  Json?
+  costEvent AgentCostEvent?
+  createdAt DateTime        @default(now())
+
+  @@index([agentId])
+  @@index([createdAt])
+  @@index([agentId, createdAt])
+  @@index([project])
+}
+
+model AgentCostEvent {
+  id           String      @id @default(cuid())
+  agentId      String
+  agent        Agent       @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  eventId      String?     @unique
+  event        AgentEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  model        String      // e.g. "claude-sonnet-4", "gpt-4o"
+  inputTokens  Int
+  outputTokens Int
+  costUsd      Float
+  project      Project?
+  metadata     Json?
+  createdAt    DateTime    @default(now())
+
+  @@index([agentId])
+  @@index([createdAt])
+  @@index([agentId, createdAt])
+  @@index([project])
+}
+
+model AgentInterrupt {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  type      String   // "pause", "resume", "stop", "custom"
+  message   String?
+  status    String   @default("pending") // "pending", "delivered", "acknowledged"
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId])
+  @@index([agentId, status])
+}
