@@ -41,7 +41,6 @@
   font-family: var(--font-sans);
   font-size: 0.875rem;
   border: 1px solid var(--light-grey);
-  border-radius: 0;
   background: var(--white);
   color: var(--black);
   appearance: auto;
@@ -61,7 +60,6 @@
   font-family: var(--font-sans);
   font-size: 0.875rem;
   border: 1px solid var(--light-grey);
-  border-radius: 0;
   background: var(--white);
   color: var(--black);
   box-sizing: border-box;

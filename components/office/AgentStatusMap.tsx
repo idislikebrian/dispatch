@@ -8,25 +8,30 @@ import styles from "./AgentStatusMap.module.css";
 interface Agent {
   name: string;
   project?: string;
-  status: "online" | "idle" | "error" | "offline" | string;
-  lastHeartbeat: string;
+  status: "online" | "active" | "idle" | "waiting" | "error" | "offline" | string;
+  lastHeartbeat: string | null;
   eventCount24h?: number;
 }
 
 function deriveStatus(agent: Agent): string {
   if (agent.status === "error") return "error";
-  // Derive offline from heartbeat age > 5 minutes
+  // Derive offline from heartbeat age > 60 seconds
   try {
+    if (!agent.lastHeartbeat) return "offline";
     const lastBeat = new Date(agent.lastHeartbeat).getTime();
     const ageMs = Date.now() - lastBeat;
-    if (ageMs > 5 * 60 * 1000) return "offline";
+    if (ageMs > 60 * 1000) return "offline";
   } catch {
     // ignore
   }
+  // Normalise "active" → "online" and "waiting" → "idle" for display
+  if (agent.status === "active") return "online";
+  if (agent.status === "waiting") return "idle";
   return agent.status;
 }
 
-function formatHeartbeat(ts: string): string {
+function formatHeartbeat(ts: string | null): string {
+  if (!ts) return "never";
   try {
     const d = new Date(ts);
     const ageMs = Date.now() - d.getTime();

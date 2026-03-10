@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-// GET /api/agents — all agents with latest heartbeat and 24h event count
+// GET /api/agents — all agents with derived status and last heartbeat timestamp
 export async function GET(): Promise<NextResponse> {
   try {
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -23,18 +23,24 @@ export async function GET(): Promise<NextResponse> {
       },
     });
 
-    const result = agents.map((agent) => ({
-      id: agent.id,
-      name: agent.name,
-      type: agent.type,
-      project: agent.project,
-      createdAt: agent.createdAt,
-      updatedAt: agent.updatedAt,
-      latestHeartbeat: agent.heartbeats[0] ?? null,
-      eventCount24h: agent._count.events,
-    }));
+    const result = agents.map((agent) => {
+      const latestHeartbeat = agent.heartbeats[0] ?? null;
+      return {
+        id: agent.id,
+        name: agent.name,
+        type: agent.type,
+        project: agent.project,
+        // Expose the heartbeat status string for the UI
+        status: latestHeartbeat?.status ?? 'offline',
+        // Expose last heartbeat timestamp under the key the UI expects
+        lastHeartbeat: latestHeartbeat?.createdAt ?? null,
+        eventCount24h: agent._count.events,
+        createdAt: agent.createdAt,
+        updatedAt: agent.updatedAt,
+      };
+    });
 
-    return NextResponse.json({ agents: result }, { status: 200 });
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error('Agents fetch error:', error);
     return NextResponse.json(

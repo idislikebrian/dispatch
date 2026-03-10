@@ -17,6 +17,7 @@ function getPeriodStart(period: Period): Date {
 }
 
 // GET /api/cost/summary — aggregate cost grouped by agent, optional ?period=24h|7d|30d
+// Returns an array of { agentName, totalCost } for direct UI consumption
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
@@ -46,30 +47,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
     const agentMap = new Map(agents.map((a) => [a.id, a.name]));
 
-    const byAgent = costGroups.map((g) => ({
-      agentId: g.agentId,
+    // Return a flat array with the keys the UI expects
+    const entries = costGroups.map((g) => ({
       agentName: agentMap.get(g.agentId) ?? 'unknown',
-      totalCostUsd: g._sum.costUsd ?? 0,
+      totalCost: g._sum.costUsd ?? 0,
       totalInputTokens: g._sum.inputTokens ?? 0,
       totalOutputTokens: g._sum.outputTokens ?? 0,
       eventCount: g._count.id,
     }));
 
-    const totalCostUsd = byAgent.reduce((sum, a) => sum + a.totalCostUsd, 0);
-    const totalInputTokens = byAgent.reduce((sum, a) => sum + a.totalInputTokens, 0);
-    const totalOutputTokens = byAgent.reduce((sum, a) => sum + a.totalOutputTokens, 0);
-
-    return NextResponse.json(
-      {
-        period,
-        since,
-        totalCostUsd,
-        totalInputTokens,
-        totalOutputTokens,
-        byAgent,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json(entries, { status: 200 });
   } catch (error) {
     console.error('Cost summary error:', error);
     return NextResponse.json(
