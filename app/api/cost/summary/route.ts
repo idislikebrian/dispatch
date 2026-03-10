@@ -16,8 +16,8 @@ function getPeriodStart(period: Period): Date {
   }
 }
 
-// GET /api/cost/summary — aggregate cost grouped by agent, optional ?period=24h|7d|30d
-// Returns an array of { agentName, totalCost } for direct UI consumption
+// GET /api/cost/summary — aggregate cost grouped by agent + project, optional ?period=24h|7d|30d
+// Returns ALL agents (including those with zero cost in the window)
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
@@ -27,9 +27,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const since = getPeriodStart(period);
 
-    // Aggregate cost events grouped by agent
+    // Fetch all agents so we always return every agent (even with zero cost)
+    const allAgents = await prisma.agent.findMany({
+      select: { id: true, name: true, project: true },
+    });
+
+    // Aggregate cost events grouped by agentId + project
     const costGroups = await prisma.agentCostEvent.groupBy({
-      by: ['agentId'],
+      by: ['agentId', 'project'],
       where: { createdAt: { gte: since } },
       _sum: {
         costUsd: true,
@@ -39,22 +44,45 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       _count: { id: true },
     });
 
-    // Fetch agent names
-    const agentIds = costGroups.map((g) => g.agentId);
-    const agents = await prisma.agent.findMany({
-      where: { id: { in: agentIds } },
-      select: { id: true, name: true },
-    });
-    const agentMap = new Map(agents.map((a) => [a.id, a.name]));
+    // Build a map of agentId → aggregated cost data
+    const costMap = new Map<string, {
+      totalCost: number;
+      totalInputTokens: number;
+      totalOutputTokens: number;
+      eventCount: number;
+      project: string | null;
+    }>();
 
-    // Return a flat array with the keys the UI expects
-    const entries = costGroups.map((g) => ({
-      agentName: agentMap.get(g.agentId) ?? 'unknown',
-      totalCost: g._sum.costUsd ?? 0,
-      totalInputTokens: g._sum.inputTokens ?? 0,
-      totalOutputTokens: g._sum.outputTokens ?? 0,
-      eventCount: g._count.id,
-    }));
+    for (const g of costGroups) {
+      const existing = costMap.get(g.agentId);
+      if (existing) {
+        existing.totalCost += g._sum.costUsd ?? 0;
+        existing.totalInputTokens += g._sum.inputTokens ?? 0;
+        existing.totalOutputTokens += g._sum.outputTokens ?? 0;
+        existing.eventCount += g._count.id;
+      } else {
+        costMap.set(g.agentId, {
+          totalCost: g._sum.costUsd ?? 0,
+          totalInputTokens: g._sum.inputTokens ?? 0,
+          totalOutputTokens: g._sum.outputTokens ?? 0,
+          eventCount: g._count.id,
+          project: g.project,
+        });
+      }
+    }
+
+    // Return all agents, filling in zero for agents with no cost events
+    const entries = allAgents.map((agent) => {
+      const cost = costMap.get(agent.id);
+      return {
+        agentName: agent.name,
+        project: cost?.project ?? agent.project ?? null,
+        totalCost: cost?.totalCost ?? 0,
+        totalInputTokens: cost?.totalInputTokens ?? 0,
+        totalOutputTokens: cost?.totalOutputTokens ?? 0,
+        eventCount: cost?.eventCount ?? 0,
+      };
+    });
 
     return NextResponse.json(entries, { status: 200 });
   } catch (error) {
