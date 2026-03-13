@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { fetchAPI } from "@/lib/api";
 import styles from "./ContentList.module.css";
+import { getPlatformIcon } from "@/lib/icons";
+import { formatRelativeTime } from "@/lib/time";
 
 interface ContentItem {
   id: string;
@@ -38,19 +40,6 @@ interface ContentListProps {
   filterStage?: string | null;
 }
 
-function formatDate(isoString: string): string {
-  try {
-    const d = new Date(isoString);
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return isoString;
-  }
-}
-
 export default function ContentList({ filterStage }: ContentListProps) {
   const [items, setItems] = useState<ContentItem[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -63,33 +52,33 @@ export default function ContentList({ filterStage }: ContentListProps) {
         const data = await fetchAPI<ContentListResponse>(`/api/content${query}`);
         setItems(data.data || []);
         setError(null);
+        setLoading(false);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to fetch content");
-      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
   }, [filterStage]);
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>Content List</div>
 
-      {error && (
-        <div className={styles.errorRow}>{error}</div>
-      )}
+      {error && <div className={styles.errorRow}>{error}</div>}
 
       <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
             <tr>
               <th className={styles.th}>Title</th>
-              <th className={styles.th}>Project</th>
               <th className={styles.th}>Platform</th>
               <th className={styles.th}>Stage</th>
               <th className={styles.th}>Owner</th>
+              <th className={styles.th}>Project</th>
               <th className={styles.th}>Created</th>
             </tr>
           </thead>
@@ -110,8 +99,12 @@ export default function ContentList({ filterStage }: ContentListProps) {
             )}
             {items.map((item) => (
               <tr key={item.id} className={styles.row}>
-                <td className={styles.td}>{item.title}</td>
-                <td className={styles.td}>{item.project}</td>
+                <td className={styles.td}>
+                  <span className={styles.titleCell}>
+                    <span className={styles.icon}>{getPlatformIcon(item.platform, 14)}</span>
+                    <span>{item.title}</span>
+                  </span>
+                </td>
                 <td className={styles.td}>{item.platform}</td>
                 <td className={styles.td}>
                   <span
@@ -125,8 +118,9 @@ export default function ContentList({ filterStage }: ContentListProps) {
                   </span>
                 </td>
                 <td className={styles.td}>{item.ownerName}</td>
+                <td className={styles.td}>{item.project}</td>
                 <td className={`${styles.td} ${styles.mono}`}>
-                  {formatDate(item.createdAt)}
+                  {formatRelativeTime(item.createdAt)}
                 </td>
               </tr>
             ))}

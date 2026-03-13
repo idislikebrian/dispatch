@@ -3,13 +3,17 @@
 import { useEffect, useState } from "react";
 import { fetchAPI } from "@/lib/api";
 import styles from "./ContentPipeline.module.css";
+import { getPlatformIcon } from "@/lib/icons";
+import { formatRelativeTime } from "@/lib/time";
 
 interface ContentItem {
   id: string;
   title: string;
   platform: string;
   stage: string;
+  project: string;
   ownerName: string;
+  createdAt: string;
 }
 
 interface ContentListResponse {
@@ -34,7 +38,6 @@ interface ContentPipelineProps {
 export default function ContentPipeline({ filterStage }: ContentPipelineProps) {
   const [content, setContent] = useState<ContentItem[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,23 +48,19 @@ export default function ContentPipeline({ filterStage }: ContentPipelineProps) {
         setError(null);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to fetch content");
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
   }, [filterStage]);
-
-  if (loading) {
-    return <div className={styles.container} />;
-  }
 
   if (error) {
     return <div className={styles.error}>{error}</div>;
   }
 
-  // Group items by stage
+  // Group items by stage in hardcoded order
   const stages = STAGE_ORDER.map((stage) => ({
     stage,
     items: content.filter((item) => item.stage === stage),
@@ -79,18 +78,26 @@ export default function ContentPipeline({ filterStage }: ContentPipelineProps) {
                 style={{ borderTopColor: STAGE_COLORS[column.stage] }}
               >
                 <span className={styles.stageName}>{column.stage}</span>
-                <span className={styles.count}>{column.items.length}</span>
+                <span className={styles.count} style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {column.items.length}
+                </span>
               </div>
               <div className={styles.columnContent}>
                 {column.items.length === 0 ? (
-                  <div className={styles.emptyColumn}>—</div>
+                  <div className={styles.emptyColumn}>No items in this stage</div>
                 ) : (
                   column.items.map((item) => (
                     <div key={item.id} className={styles.card}>
-                      <div className={styles.cardTitle}>{item.title}</div>
+                      <div className={styles.cardTitle}>
+                        <span className={styles.icon}>{getPlatformIcon(item.platform, 14)}</span>
+                        <span>{item.title}</span>
+                      </div>
                       <div className={styles.cardMeta}>
-                        <span className={styles.platform}>{item.platform}</span>
-                        <span className={styles.owner}>{item.ownerName}</span>
+                        <span>{item.ownerName}</span>
+                        <span className={styles.bullet}>•</span>
+                        <span>{item.project}</span>
+                        <span className={styles.bullet}>•</span>
+                        <span>{formatRelativeTime(item.createdAt)}</span>
                       </div>
                     </div>
                   ))

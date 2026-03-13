@@ -61,6 +61,22 @@
   color: var(--black);
 }
 
+.titleCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--grey);
+}
+
 .mono {
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -94,3 +110,4 @@
   font-family: var(--font-mono);
   background: #fee;
 }
+
