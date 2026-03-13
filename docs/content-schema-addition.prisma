@@ -1,0 +1,103 @@
+// Content Pipeline Models & Enums
+// This is a draft for review before integration into schema.prisma
+// 
+// To integrate: 
+// 1. Add the enum definitions below to the top-level of schema.prisma (with other enums)
+// 2. Add the Content model and AgentEvent relation field below
+// 3. Update AgentEvent to include the reverse relation field
+
+// ─── New Enums ──────────────────────────────────────────────────────────────
+
+enum ContentPlatform {
+  substack
+  warpcast
+  threads
+  bluesky
+  youtube
+  instagram
+  other
+}
+
+enum ContentStage {
+  idea
+  draft
+  editing
+  scheduled
+  published
+  repurposed
+  archived
+}
+
+enum OwnerType {
+  human
+  agent
+}
+
+// ─── New Model ──────────────────────────────────────────────────────────────
+
+model Content {
+  id             String            @id @default(cuid())
+  
+  // Metadata
+  title          String
+  project        Project           // inherit from existing enum: Cobalt, Caminos, HIGHER, Aluminum, Experimental
+  platform       ContentPlatform   // new enum: substack, warpcast, threads, bluesky, youtube, instagram, other
+  stage          ContentStage      // new enum: idea, draft, editing, scheduled, published, repurposed, archived
+  
+  // Ownership
+  ownerName      String            // human-readable name: "Brian", "June", "agent-name"
+  ownerType      OwnerType         // new enum: human | agent
+  
+  // Context
+  summary        String?           // optional: one-line summary or metadata
+  sourceIdea     String?           // optional: origin of the idea (e.g., "Notes from AI journal entry")
+  
+  // Relations
+  relatedEventId String?           // optional: link to AgentEvent for causality
+  relatedEvent   AgentEvent?       @relation(fields: [relatedEventId], references: [id], onDelete: SetNull)
+  
+  // Timestamps
+  scheduledFor   DateTime?         // when we plan to publish
+  publishedAt    DateTime?         // when actually published (set when moving to "published" stage)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  
+  // Indexes for fast queries
+  @@index([project])
+  @@index([stage])
+  @@index([platform])
+  @@index([ownerName])
+  @@index([createdAt])
+  @@index([project, stage])  // compound index for common query: "all content in X project by stage"
+}
+
+// ─── Modification to AgentEvent ──────────────────────────────────────────────
+//
+// Add this field to the existing AgentEvent model:
+//
+//   content Content[]  @relation("AgentEventToContent")
+//
+// And update the Content.relatedEvent relation to:
+//
+//   relatedEvent AgentEvent? @relation("AgentEventToContent", fields: [relatedEventId], references: [id], onDelete: SetNull)
+//
+// Current AgentEvent model (for reference):
+//
+//   model AgentEvent {
+//     id        String          @id @default(cuid())
+//     agentId   String
+//     agent     Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+//     type      String          // "action", "error", "info", "warning"
+//     message   String
+//     project   Project?
+//     metadata  Json?
+//     costEvent AgentCostEvent?
+//     createdAt DateTime        @default(now())
+//
+//     content   Content[]       @relation("AgentEventToContent")  // ← ADD THIS LINE
+//
+//     @@index([agentId])
+//     @@index([createdAt])
+//     @@index([agentId, createdAt])
+//     @@index([project])
+//   }
