@@ -1,0 +1,59 @@
+.container {
+  margin-bottom: 1.25rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--light-grey);
+  border-top: 4px solid var(--grey);
+  padding: 1rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+
+  /* Sharp corners */
+  border-radius: 0;
+}
+
+.card:hover {
+  background: #fafaf8;
+  border-color: var(--black);
+}
+
+.card.selected {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+.stageName {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.count {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.error {
+  padding: 1rem;
+  background: #fee;
+  color: var(--rojo);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  text-align: center;
+}

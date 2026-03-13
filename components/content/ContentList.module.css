@@ -1,0 +1,96 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 2px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.th {
+  position: sticky;
+  top: 0;
+  background: var(--black);
+  color: var(--white);
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.row:nth-child(even) {
+  background: hsl(0 0% 97%);
+}
+
+.row:hover {
+  background: var(--cooblue);
+}
+
+.row {
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.td {
+  padding: 0.4rem 0.75rem;
+  vertical-align: middle;
+  color: var(--black);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--grey);
+  font-variant-numeric: tabular-nums;
+}
+
+.badge {
+  display: inline-block;
+  border: 1px solid;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--grey);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+}
+
+.errorRow {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--rojo);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  background: #fee;
+}

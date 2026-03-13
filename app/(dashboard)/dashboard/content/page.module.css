@@ -1,5 +1,6 @@
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
+  padding: 2rem;
 }
 
 .header {
@@ -9,24 +10,24 @@
 .title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: hsl(var(--foreground));
-  margin: 0 0 0.5rem 0;
-}
-
-.description {
-  font-size: 0.875rem;
-  color: hsl(var(--muted-foreground));
+  color: var(--black);
   margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-wrap: balance;
+  -webkit-font-smoothing: antialiased;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-.placeholder {
-  color: hsl(var(--muted-foreground));
-  font-size: 0.875rem;
-  margin: 0;
+.fullWidth {
+  width: 100%;
+}
+
+.noPadding {
+  padding: 0 !important;
 }

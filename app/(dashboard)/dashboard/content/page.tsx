@@ -1,46 +1,36 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import styles from './page.module.css';
+"use client";
 
-export const metadata = {
-  title: 'Content | Dispatch',
-};
+import { useState } from "react";
+import styles from "./page.module.css";
+import ContentSummary from "@/components/content/ContentSummary";
+import ContentPipeline from "@/components/content/ContentPipeline";
+import ContentList from "@/components/content/ContentList";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function ContentPage() {
+  const [filterStage, setFilterStage] = useState<string | null>(null);
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Content</h1>
-        <p className={styles.description}>Manage content workflows and publishing.</p>
       </div>
 
-      <div className={styles.grid}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Drafts</CardTitle>
-            <CardDescription>Unpublished content in progress</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className={styles.placeholder}>No drafts</p>
+      <div className={styles.layout}>
+        {/* Summary cards */}
+        <ContentSummary onStageFilter={setFilterStage} />
+
+        {/* Pipeline view */}
+        <Card className={styles.fullWidth}>
+          <CardContent className={styles.noPadding}>
+            <ContentPipeline filterStage={filterStage} />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Scheduled</CardTitle>
-            <CardDescription>Content queued for publishing</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className={styles.placeholder}>No scheduled content</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Published</CardTitle>
-            <CardDescription>Live content across channels</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className={styles.placeholder}>No published content</p>
+        {/* List view */}
+        <Card className={styles.fullWidth}>
+          <CardContent className={styles.noPadding}>
+            <ContentList filterStage={filterStage} />
           </CardContent>
         </Card>
       </div>
