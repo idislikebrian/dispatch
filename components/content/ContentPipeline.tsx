@@ -16,9 +16,7 @@ interface ContentItem {
   createdAt: string;
 }
 
-interface ContentListResponse {
-  data: ContentItem[];
-}
+// API returns flat array of ContentItem[]
 
 const STAGE_ORDER = ["idea", "draft", "editing", "scheduled", "published", "repurposed", "archived"];
 const STAGE_COLORS: Record<string, string> = {
@@ -43,8 +41,8 @@ export default function ContentPipeline({ filterStage }: ContentPipelineProps) {
     const fetchData = async () => {
       try {
         const query = filterStage ? `?stage=${filterStage}` : "";
-        const data = await fetchAPI<ContentListResponse>(`/api/content${query}`);
-        setContent(data.data || []);
+        const data = await fetchAPI<ContentItem[]>(`/api/content${query}`);
+        setContent(data || []);
         setError(null);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to fetch content");

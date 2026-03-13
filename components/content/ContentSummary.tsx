@@ -9,10 +9,7 @@ interface StageSummary {
   count: number;
 }
 
-interface SummaryResponse {
-  summary: StageSummary[];
-  total: number;
-}
+// API returns flat object: { idea: 5, draft: 3, ... }
 
 const STAGE_ORDER = ["idea", "draft", "editing", "scheduled", "published", "repurposed", "archived"];
 
@@ -28,11 +25,11 @@ export default function ContentSummary({ onStageFilter }: ContentSummaryProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchAPI<SummaryResponse>("/api/content/summary");
-        const ordered = STAGE_ORDER.map((stage) => {
-          const found = data.summary.find((s) => s.stage === stage);
-          return found || { stage, count: 0 };
-        });
+        const data = await fetchAPI<Record<string, number>>("/api/content/summary");
+        const ordered = STAGE_ORDER.map((stage) => ({
+          stage,
+          count: data[stage] ?? 0,
+        }));
         setSummary(ordered);
         setError(null);
       } catch (e) {
