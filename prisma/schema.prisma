@@ -90,6 +90,7 @@ model AgentEvent {
   project   Project?
   metadata  Json?
   costEvent AgentCostEvent?
+  content   ContentItem[]
   createdAt DateTime        @default(now())
 
   @@index([agentId])
@@ -131,4 +132,57 @@ model AgentInterrupt {
 
   @@index([agentId])
   @@index([agentId, status])
+}
+
+// ─── Content Pipeline ───────────────────────────────────────────────────────
+
+enum ContentPlatform {
+  substack
+  warpcast
+  threads
+  bluesky
+  youtube
+  instagram
+  other
+}
+
+enum ContentStage {
+  idea
+  draft
+  editing
+  scheduled
+  published
+  repurposed
+  archived
+}
+
+enum OwnerType {
+  human
+  agent
+}
+
+model ContentItem {
+  id             String          @id @default(cuid())
+  title          String
+  project        Project
+  platform       ContentPlatform
+  stage          ContentStage
+  ownerName      String
+  ownerType      OwnerType
+  summary        String?
+  sourceIdea     String?
+  relatedEventId String?
+  relatedEvent   AgentEvent?     @relation(fields: [relatedEventId], references: [id], onDelete: SetNull)
+  scheduledFor   DateTime?
+  publishedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([project])
+  @@index([stage])
+  @@index([platform])
+  @@index([ownerName])
+  @@index([createdAt(sort: Desc)])
+  @@index([project, stage])
+  @@index([relatedEventId])
 }
