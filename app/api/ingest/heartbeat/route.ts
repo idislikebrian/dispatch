@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 
 interface HeartbeatRequestBody {
   agentName: string;
+  agentType?: string;
   status: string;
   metadata?: Record<string, unknown>;
 }
@@ -11,7 +12,7 @@ interface HeartbeatRequestBody {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body: HeartbeatRequestBody = await request.json();
-    const { agentName, status, metadata } = body;
+    const { agentName, agentType, status, metadata } = body;
 
     if (!agentName || !status) {
       return NextResponse.json(
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const agent = await prisma.agent.upsert({
       where: { name: agentName },
       update: { updatedAt: new Date() },
-      create: { name: agentName, type: 'openclaw' },
+      create: { name: agentName, type: agentType || 'openclaw' },
     });
 
     // Create heartbeat record

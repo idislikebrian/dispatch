@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 
 interface EventRequestBody {
   agentName: string;
+  agentType?: string;
   type: string;
   message: string;
   project?: Project;
@@ -13,7 +14,7 @@ interface EventRequestBody {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body: EventRequestBody = await request.json();
-    const { agentName, type, message, project, metadata } = body;
+    const { agentName, agentType, type, message, project, metadata } = body;
 
     if (!agentName || !type || !message) {
       return NextResponse.json(
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const agent = await prisma.agent.upsert({
       where: { name: agentName },
       update: { updatedAt: new Date() },
-      create: { name: agentName, type: 'openclaw' },
+      create: { name: agentName, type: agentType || 'openclaw' },
     });
 
     // Create event record
