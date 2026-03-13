@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma, ContentPlatform, ContentStage } from '@prisma/client';
+import { Prisma, ContentPlatform, ContentStage, Project } from '@prisma/client';
 import { prisma } from '@/lib/db';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,7 +70,14 @@ async function PATCH(
     }
 
     if ('project' in body && body.project !== undefined) {
-      updateData.project = body.project;
+      const validProjects = Object.values(Project);
+      if (!validProjects.includes(body.project as Project)) {
+        return NextResponse.json(
+          { error: `Invalid project. Must be one of: ${validProjects.join(', ')}` },
+          { status: 400 }
+        );
+      }
+      updateData.project = body.project as Project;
     }
 
     if ('stage' in body && body.stage !== undefined) {

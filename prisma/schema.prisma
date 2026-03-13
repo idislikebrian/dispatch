@@ -51,6 +51,9 @@ enum Project {
   HIGHER
   Aluminum
   Experimental
+  TTABLE
+  AYDAF
+  DiligentProcrastination
 }
 
 model Agent {
