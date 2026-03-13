@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db';
 
 interface UpdateContentRequestBody {
   title?: string;
+  project?: string;
   stage?: string;
   summary?: string;
   scheduledFor?: string;
@@ -40,7 +41,7 @@ async function PATCH(
     }
 
     // Check for attempts to update immutable fields
-    const immutableFields = ['id', 'createdAt', 'project'];
+    const immutableFields = ['id', 'createdAt'];
     for (const field of immutableFields) {
       if (field in body) {
         return NextResponse.json(
@@ -66,6 +67,10 @@ async function PATCH(
 
     if ('title' in body && body.title !== undefined) {
       updateData.title = body.title;
+    }
+
+    if ('project' in body && body.project !== undefined) {
+      updateData.project = body.project;
     }
 
     if ('stage' in body && body.stage !== undefined) {
