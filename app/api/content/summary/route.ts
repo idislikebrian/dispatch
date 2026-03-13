@@ -20,18 +20,21 @@ async function GET(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    // Get counts for each stage
-    const stages = Object.values(ContentStage);
-    const summaryObj: Record<string, number> = {};
+    // Aggregate counts using groupBy (single query)
+    const allStages = Object.values(ContentStage);
+    const grouped = await prisma.contentItem.groupBy({
+      by: ['stage'],
+      _count: { stage: true },
+      ...(projectFilter && { where: { project: projectFilter } }),
+    });
 
-    for (const stage of stages) {
-      const count = await prisma.contentItem.count({
-        where: {
-          stage,
-          ...(projectFilter && { project: projectFilter }),
-        },
-      });
-      summaryObj[stage] = count;
+    // Build flat object with all stages (0 if no rows)
+    const summaryObj: Record<string, number> = {};
+    for (const stage of allStages) {
+      summaryObj[stage] = 0;
+    }
+    for (const row of grouped) {
+      summaryObj[row.stage] = row._count.stage;
     }
 
     return NextResponse.json(summaryObj, { status: 200 });
