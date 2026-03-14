@@ -4,6 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './sidebar.module.css';
 
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
 const navItems = [
   { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquareIcon },
   { href: '/dashboard/content', label: 'Content', icon: FileTextIcon },
@@ -12,46 +17,62 @@ const navItems = [
   { href: '/dashboard/office', label: 'Office', icon: BuildingIcon },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className={styles.sidebar}>
-      <header className={styles.header}>
-        <div className={styles.logo}>
-          <Link href="/dashboard">
-            Dispatch
-          </Link>
-        </div>
-      </header>
+    <>
+      {/* Backdrop — mobile only, rendered when sidebar is open */}
+      <div
+        className={`${styles.backdrop} ${isOpen ? styles.backdropVisible : ''}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      <nav className={styles.nav}>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          const Icon = item.icon;
-          
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
-            >
-              <Icon className={styles.icon} />
-              {item.label}
+      <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
+        <header className={styles.header}>
+          <div className={styles.logo}>
+            <Link href="/dashboard" onClick={onClose}>
+              Dispatch
             </Link>
-          );
-        })}
-      </nav>
+          </div>
+          {/* Close button — mobile only */}
+          <button
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label="Close sidebar"
+          >
+            <XIcon className={styles.closeIcon} />
+          </button>
+        </header>
 
-      <footer className={styles.footer}>
-        
-      </footer>
-    </aside>
+        <nav className={styles.nav}>
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+                onClick={onClose}
+              >
+                <Icon className={styles.icon} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <footer className={styles.footer} />
+      </aside>
+    </>
   );
 }
 
 // Icons
-function ZapIcon({ className }: { className?: string }) {
+function XIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -63,7 +84,8 @@ function ZapIcon({ className }: { className?: string }) {
       strokeLinejoin="round"
       className={className}
     >
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   );
 }

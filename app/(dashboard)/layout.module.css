@@ -5,9 +5,17 @@
 
 .mainWrapper {
   flex: 1;
-  margin-left: 260px;
   display: flex;
   flex-direction: column;
+  /* Desktop: leave room for fixed sidebar */
+  margin-left: 260px;
+}
+
+/* Mobile: sidebar is an overlay, so full-width content */
+@media (max-width: 767px) {
+  .mainWrapper {
+    margin-left: 0;
+  }
 }
 
 .main {

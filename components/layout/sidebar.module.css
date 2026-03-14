@@ -10,11 +10,57 @@
   left: 0;
   top: 0;
   z-index: 40;
+  /* Interruptible slide transition */
+  transition: transform 0.25s ease;
 }
 
+/* ── Mobile: hidden by default, slides in when open ── */
+@media (max-width: 767px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+}
+
+/* ── Desktop: always visible ── */
+@media (min-width: 768px) {
+  .sidebar {
+    transform: translateX(0);
+  }
+}
+
+/* ── Backdrop ── */
+.backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.25s ease;
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .backdrop {
+    display: block;
+  }
+
+  .backdropVisible {
+    background: rgba(0, 0, 0, 0.45);
+    pointer-events: auto;
+  }
+}
+
+/* ── Header ── */
 .header {
   padding: 1.5rem;
   border-bottom: 1px solid hsl(var(--sidebar-border));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .logo {
@@ -29,12 +75,44 @@
 
 .logo a {
   text-decoration: none;
+  color: inherit;
 }
 
 .logo:hover {
   color: hsl(var(--sidebar-primary));
 }
 
+/* ── Close button (mobile only) ── */
+.closeButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: hsl(var(--sidebar-foreground));
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.closeButton:hover {
+  color: hsl(var(--sidebar-primary));
+}
+
+.closeIcon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+@media (max-width: 767px) {
+  .closeButton {
+    display: flex;
+  }
+}
+
+/* ── Nav ── */
 .nav {
   flex: 1;
   padding: 1rem;
@@ -49,7 +127,6 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.625rem 0.875rem;
-  border-radius: calc(var(--radius) - 2px);
   color: hsl(var(--sidebar-foreground));
   text-decoration: none;
   font-size: 0.875rem;
@@ -73,6 +150,7 @@
   flex-shrink: 0;
 }
 
+/* ── Footer ── */
 .footer {
   padding: 1rem;
   border-top: 1px solid hsl(var(--sidebar-border));
