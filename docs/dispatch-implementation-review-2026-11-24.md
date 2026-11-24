@@ -96,3 +96,15 @@ Fix commit: `caa5bb7` — login now pushes to `/dashboard`; a route-contract tes
 Read-only production probes observed `/tasks` as 404. An unauthenticated `/dashboard` probe returned 500 from the current deployment, so production-equivalent Vercel runtime logs/configuration must be checked during the P3 release gate; this was not treated as solved by the redirect patch. The release package must verify login, session persistence, `/dashboard` navigation, and dashboard access on the deployed commit after promotion.
 
 No production deployment has occurred. P3 approval remains required for promotion; production acceptance is: iPhone login lands directly on a functional `/dashboard`, session persistence survives navigation, unauthenticated access still redirects to `/`, and the deployed commit is verified to contain `caa5bb7` or its release descendant.
+
+## milestone 4 — runtime alignment and preview recovery
+
+The failed preview's Node 20 selection traced to the repository root `package.json` and lockfile `engines.node: 20.x`; git history also records the original Node 20 stabilization. No `.nvmrc`, `.node-version`, CI workflow, or `vercel.json` supplied a competing repository runtime. Vercel's supported-version documentation states that `engines.node: 24.x` selects the latest 24.x runtime; the current Next 15 line requires Node 18.18 or later, and the repository's Prisma 6 line supports Node 20.9 or later. Node 24.x is therefore the selected supported LTS, aligned with the existing project configuration and less disruptive than moving this dependency set to Node 26.
+
+Release configuration changes prepared:
+
+- `package.json` and `package-lock.json`: `engines.node` → `24.x`.
+- `.nvmrc` and `.node-version`: `24`.
+- `.github/workflows/ci.yml`: Node 24 CI matrix/runtime, synthetic tests, migration inventory, and database-free build.
+
+Local Node `v24.21.0` verification: 14 synthetic tests passed, security tests passed, `db:check` passed for 12 models, and `npm run build` passed. The next preview must prove the Vercel runtime/build path; the prior preview failure was not treated as resolved until a fresh deployment succeeds.
