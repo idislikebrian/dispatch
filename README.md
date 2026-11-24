@@ -22,9 +22,9 @@ npm install
 cp .env.example .env
 # Edit .env with your DATABASE_URL and SESSION_SECRET
 
-# Setup database and build
-npx prisma db push
-npx prisma generate
+# Generate the client and apply reviewed migrations explicitly
+npm run db:generate
+npm run db:migrate:deploy
 npm run build
 
 # Start the app
@@ -68,9 +68,20 @@ DATABASE_URL="postgresql://...neon.tech/..."
 npm run dev          # Development server
 npm run build        # Production build
 npm run db:generate  # Generate Prisma client
-npm run db:migrate   # Run migrations
+npm run db:migrate   # Create/apply a local development migration
+npm run db:migrate:deploy # Apply committed migrations in a release environment
+npm run db:check     # Check schema/migration drift (no database connection)
 npm run db:studio    # Open Prisma Studio
+npm run test:synthetic # Focused tests; no database or deployment
+npm run diagnose:office-500 # Reproduce the office telemetry 500 diagnosis locally
+npm run release:check # Validate release provenance inputs
+npm run release:receipt # Write an ignored JSON provenance receipt
 ```
+
+`npm run build` never mutates a database. Do not use `prisma db push` for a
+release. Review and apply committed migrations with `db:migrate:deploy` as a
+separate, explicitly authorized operation. `db:check` is repository-only and
+does not prove that a connected database is current.
 
 ## Rules
 
