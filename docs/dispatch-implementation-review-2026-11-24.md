@@ -126,7 +126,7 @@ The migration is additive and idempotent: it adds the eight missing
 `RequestNonce`, and `IdempotencyRecord`, adds the measured indexes, and adds
 the two identity foreign keys conditionally. It contains no drops, deletes,
 backfills, or data rewrites. Migration SHA-256 is recorded in the release
-receipt after commit.
+`faf1c58944c11f45109740412bb0f7a86907644f8d2068bb71e18b38b175d120`.
 
 Clone rehearsal used the isolated PostgreSQL 16 container
 `dispatch-staging-postgres` and database `dispatch_reconcile_rehearsal` with
@@ -150,4 +150,6 @@ database-free build/type-check, and staging E2E all pass. The hosted Vercel
 Preview and CI checks are green on `9a063b1`; browser-authenticated preview
 smoke could not be independently re-run in this environment because no
 supported browser was available, so that remains an explicit P3 verification
-step rather than an inferred success.
+step rather than an inferred success. Release provenance for commit
+`9caba9b4b81135fb93d24490fa84df57e08a513f` records migrations-tree SHA-256
+`6366c5e611254a8d46eb7a38b82a5230c4bcad50cacebeeb2a32641e1f178fe6`.
