@@ -56,3 +56,16 @@ The June adapter proves request construction and tamper rejection only. It does 
 6. Obtain Brian's explicit approval before production code/config promotion, database migration, credential or connected-service changes, live telemetry/control calls, deployment, or rollback.
 
 No Linear project restructuring was performed. Proposed reconciliation remains bounded to existing Dispatch issues: `COB-751` for the restoration work and `COB-768` for the supervised pilot.
+
+## isolated staging verification — follow-up
+
+The missing migration blocker was resolved in isolated infrastructure only. A local PostgreSQL 16 container named `dispatch-staging-postgres` was provisioned on port `55432` with synthetic-only credentials; no production `.env` or hosted database was used. Migration `20261124175650_dispatch_staging_baseline` was generated and applied with `prisma migrate deploy`.
+
+- `npm run db:check`: passed for 12 models.
+- `npm run test:synthetic`: 4 passed.
+- `npm run test:security`: passed.
+- `npm run test:staging:e2e`: passed.
+- End-to-end coverage: session-gated identity registration; signed heartbeat and event; nonce replay rejection; persisted idempotency-key replay rejection; authenticated agent read; command claim; active-lease duplicate suppression; retry/backoff/reclaim; acknowledgment; and expiration.
+- A real staging bug was found and fixed: agent credentials now take precedence over a browser session cookie, preventing replayed or forged agent requests from falling through to human-session authentication.
+
+The lifecycle harness uses only synthetic agent names, messages, and project data. This demonstrates a working isolated staging execution lifecycle, not production readiness. Production promotion still requires migration review, deployment provenance, live service configuration review, and Brian's approval.
