@@ -48,6 +48,21 @@ assert.equal(unauthenticated.status, 401, 'public agent reads must require authe
 await json(await request('/api/auth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }) }));
 const dashboard = await request('/dashboard');
 assert.equal(dashboard.status, 200, 'authenticated session must reach the dashboard landing page');
+const logout = await request('/api/auth/logout', { method: 'POST' });
+assert.equal(logout.status, 200, 'logout must clear the session');
+const protectedAfterLogout = await fetch(`${base}/dashboard`, { redirect: 'manual' });
+assert.equal(protectedAfterLogout.status, 307, 'an expired session must be redirected away from the dashboard');
+assert.equal(protectedAfterLogout.headers.get('location'), '/', 'expired session must return to the login page');
+const login = await request('/api/auth/login', {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ email, password }),
+});
+assert.equal(login.status, 200, 'valid credentials must establish a session');
+const dashboardAfterLogin = await request('/dashboard');
+assert.equal(dashboardAfterLogin.status, 200, 'login session must reach the dashboard');
+const tasksPage = await request('/dashboard/tasks');
+assert.equal(tasksPage.status, 200, 'authenticated navigation must reach dashboard tasks');
 const identity = await json(await request('/api/auth/identities', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'june-staging' }) }));
 
 const heartbeat = await signed('/api/ingest/heartbeat', 'POST', { agentName: 'june-staging', agentType: 'openclaw', status: 'online', metadata: { synthetic: true } }, identity.keyId, identity.secret);

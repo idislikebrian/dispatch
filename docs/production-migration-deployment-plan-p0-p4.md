@@ -181,3 +181,41 @@ migration is prepared from this exact catalog state, rehearsed against a
 restored clone, and separately authorized. No `migrate deploy`, `db push`,
 schema write, or data write was performed.
 
+## 9. Release-candidate reconciliation rehearsal — 2026-11-24
+
+The reviewed additive migration is
+`20261124190000_reconcile_hosted_catalog`. It was generated from the measured
+catalog-to-schema diff and is safe to retry at the SQL-object level: every
+column, table, and index uses an existence guard, and foreign keys are added
+inside catalog-checked blocks. It does not drop or rewrite existing records.
+
+Rehearsal used an isolated PostgreSQL 16 clone populated with synthetic rows
+in every legacy table observed in the hosted catalog. The clone was reduced
+to the legacy shape, the migration was applied through a temporary migration
+tree containing the two historical migrations plus the reconciliation, and a
+second `prisma migrate deploy` was run. Read-back confirmed preservation of
+the synthetic records, creation of the new auth/idempotency tables, restoration
+of interrupt lifecycle columns, one migration-history record, and a no-op
+second deployment.
+
+The local release-candidate acceptance loop now covers register, authenticated
+dashboard landing, logout redirect, login session restoration, and
+`/dashboard/tasks`, followed by the genuine June lifecycle evidence path.
+The production-equivalent Vercel Preview is deployed and CI is green on
+`9a063b1`, but authenticated preview smoke remains unverified here because
+the available browser runtime could not start and the preview requires Vercel
+authentication.
+
+### Consolidated P3 authorization package
+
+Promotion remains gated. The package to authorize is: deploy the reviewed
+application commit, apply only
+`20261124190000_reconcile_hosted_catalog` to the confirmed production database
+after backup/restore-point verification, run authenticated login/session/
+dashboard smoke on iPhone, verify the deployed commit and migration read-back,
+and retain the additive schema on application rollback. Stop on any migration
+failure, unexpected schema drift, auth/session failure, dashboard 5xx, or
+commit/provenance mismatch. Rollback is application-only for app failures;
+database rollback is not implicit and requires a new explicit destructive
+approval after preserving evidence.
+

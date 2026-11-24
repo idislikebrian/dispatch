@@ -116,3 +116,38 @@ lines with SHA-256
 `cdc9fa409b9bb77c22ae1f81e86eeb69fc7b3f10c0a90186e69789bd31a48da4`; preparing
 and rehearsing an idempotent production reconciliation migration remains a
 P3/P4 gate. No hosted schema or data was changed.
+
+## milestone 5 — reconciliation rehearsal and release-candidate evidence
+
+The hosted catalog diff was converted into
+`prisma/migrations/20261124190000_reconcile_hosted_catalog/migration.sql`.
+The migration is additive and idempotent: it adds the eight missing
+`AgentInterrupt` lifecycle columns, creates `AuthenticatedIdentity`,
+`RequestNonce`, and `IdempotencyRecord`, adds the measured indexes, and adds
+the two identity foreign keys conditionally. It contains no drops, deletes,
+backfills, or data rewrites. Migration SHA-256 is recorded in the release
+receipt after commit.
+
+Clone rehearsal used the isolated PostgreSQL 16 container
+`dispatch-staging-postgres` and database `dispatch_reconcile_rehearsal` with
+synthetic records in `User`, `Workspace`, `LogEntry`, `Agent`,
+`AgentHeartbeat`, `AgentEvent`, `AgentInterrupt`, and `ContentItem`. The clone
+was reduced to the measured legacy shape, then the reconciliation was applied
+through Prisma migration history. Read-back preserved one record in each
+legacy table, produced the three new empty tables, restored the three checked
+interrupt columns, recorded the reconciliation exactly once, and a second
+`prisma migrate deploy` reported no pending migrations. The first rehearsal
+attempt was stopped and corrected before any committed clone result; its issue
+was migration-directory ordering, not a data or SQL failure.
+
+Authentication acceptance was expanded to cover register → dashboard,
+logout → `307 /`, login → dashboard, and authenticated `/dashboard/tasks`.
+The complete isolated lifecycle still records genuine completion/failure
+evidence with command ID, session ID, tool execution ID, artifact SHA-256, and
+read-back activity; HTTP acknowledgment alone is not treated as execution.
+Local results: 14 synthetic tests, security tests, migration inventory,
+database-free build/type-check, and staging E2E all pass. The hosted Vercel
+Preview and CI checks are green on `9a063b1`; browser-authenticated preview
+smoke could not be independently re-run in this environment because no
+supported browser was available, so that remains an explicit P3 verification
+step rather than an inferred success.
