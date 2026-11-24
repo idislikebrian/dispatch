@@ -29,7 +29,7 @@ This package records the first isolated implementation pass based on `dispatch-r
 - `npm run build`: **passed** without database mutation.
 - Provenance output recorded:
   - branch: `release-safety-dashboard-diagnosis`
-  - commit at check: `73c2c19651ccea33711f9a47fef0767a5b5c3758`
+  - commit at check: `899d30e4cb53129593bddd488443ff295878d506`
   - schema SHA-256: `032b6ad74680fa72c9139d4728ab674a8c3a7ca01ae21b68c96492cd253274de`
   - migrations tree SHA-256: `fd81375f046f20d822f1a812c1960c98d0f8b9dee2a7c4860941edbfe66d1da2`
   - build command: `prisma generate && next build`
