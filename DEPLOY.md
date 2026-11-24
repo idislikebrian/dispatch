@@ -50,13 +50,17 @@ To generate a session secret:
 openssl rand -base64 32
 ```
 
-### 4. Set Up the Database
+### 4. Set Up the Database (explicit, separate operation)
 
-Push the Prisma schema to your database:
+Apply committed migrations to the intended non-production database:
 
 ```bash
-npx prisma db push
+npm run db:migrate:deploy
 ```
+
+Do not run this command as part of a build. `prisma db push` is not a release
+operation because it bypasses migration history and can mutate a database
+implicitly.
 
 ### 5. Generate Prisma Client
 
@@ -64,11 +68,14 @@ npx prisma db push
 npx prisma generate
 ```
 
-### 6. Build the Application
+### 6. Build the Application (database-free)
 
 ```bash
 npm run build
 ```
+
+The build only generates Prisma Client and runs `next build`; it does not
+connect to or mutate a database.
 
 ### 7. Start the Application
 
@@ -174,8 +181,9 @@ If `npm run build` fails:
 
 ```bash
 # Database	npx prisma studio          # Open Prisma Studio
-npm run db:push             # Push schema changes
-npm run db:migrate          # Run migrations
+npm run db:check            # Repository-only migration drift check
+npm run db:migrate:deploy   # Explicitly apply committed migrations
+npx prisma studio           # Open Prisma Studio
 
 # Development
 npm run dev                 # Start dev server

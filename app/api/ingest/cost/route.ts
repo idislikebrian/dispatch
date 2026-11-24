@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma, Project } from '@prisma/client';
 import { prisma } from '@/lib/db';
+import { authenticateRequest } from '@/lib/security';
 
 interface CostRequestBody {
   agentName: string;
@@ -15,6 +16,7 @@ interface CostRequestBody {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     const body: CostRequestBody = await request.json();
     const { agentName, model, inputTokens, outputTokens, costUsd, eventId, project, metadata } = body;
 

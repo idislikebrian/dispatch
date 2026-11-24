@@ -8,36 +8,78 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String      @id @default(cuid())
+  email        String      @unique
   passwordHash String
   workspaces   Workspace[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model AuthenticatedIdentity {
+  id               String              @id @default(cuid())
+  name             String
+  keyId            String              @unique
+  secretCiphertext String
+  active           Boolean             @default(true)
+  lastUsedAt       DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  requestNonces    RequestNonce[]
+  idempotencyKeys  IdempotencyRecord[]
+
+  @@index([active])
+}
+
+model RequestNonce {
+  id         String                @id @default(cuid())
+  identityId String
+  identity   AuthenticatedIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  nonce      String
+  expiresAt  DateTime
+  createdAt  DateTime              @default(now())
+
+  @@unique([identityId, nonce])
+  @@index([expiresAt])
+}
+
+model IdempotencyRecord {
+  id           String                @id @default(cuid())
+  identityId   String
+  identity     AuthenticatedIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  key          String
+  requestHash  String
+  responseCode Int
+  responseBody Json
+  expiresAt    DateTime
+  createdAt    DateTime              @default(now())
+
+  @@unique([identityId, key])
+  @@index([expiresAt])
 }
 
 model Workspace {
-  id        String     @id @default(cuid())
-  name      String
-  slug      String     @unique
-  ownerId   String
-  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  id         String     @id @default(cuid())
+  name       String
+  slug       String     @unique
+  ownerId    String
+  owner      User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   logEntries LogEntry[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   @@index([ownerId])
 }
 
 model LogEntry {
-  id          String   @id @default(cuid())
-  type        String   // e.g., "info", "warn", "error"
+  id          String    @id @default(cuid())
+  type        String // e.g., "info", "warn", "error"
   message     String
-  metadata    Json?    // flexible JSON for future data
+  metadata    Json? // flexible JSON for future data
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([workspaceId])
   @@index([createdAt])
@@ -57,17 +99,17 @@ enum Project {
 }
 
 model Agent {
-  id          String            @id @default(cuid())
-  name        String            @unique
-  type        String            // e.g. "openclaw", "subagent", "cron"
-  project     Project?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id        String   @id @default(cuid())
+  name      String   @unique
+  type      String // e.g. "openclaw", "subagent", "cron"
+  project   Project?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  heartbeats  AgentHeartbeat[]
-  events      AgentEvent[]
-  costEvents  AgentCostEvent[]
-  interrupts  AgentInterrupt[]
+  heartbeats AgentHeartbeat[]
+  events     AgentEvent[]
+  costEvents AgentCostEvent[]
+  interrupts AgentInterrupt[]
 
   @@index([project])
 }
@@ -76,7 +118,7 @@ model AgentHeartbeat {
   id        String   @id @default(cuid())
   agentId   String
   agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  status    String   // "online", "idle", "offline", "error"
+  status    String // "online", "idle", "offline", "error"
   metadata  Json?
   createdAt DateTime @default(now())
 
@@ -88,7 +130,7 @@ model AgentEvent {
   id        String          @id @default(cuid())
   agentId   String
   agent     Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  type      String          // "action", "error", "info", "warning"
+  type      String // "action", "error", "info", "warning"
   message   String
   project   Project?
   metadata  Json?
@@ -108,7 +150,7 @@ model AgentCostEvent {
   agent        Agent       @relation(fields: [agentId], references: [id], onDelete: Cascade)
   eventId      String?     @unique
   event        AgentEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
-  model        String      // e.g. "claude-sonnet-4", "gpt-4o"
+  model        String // e.g. "claude-sonnet-4", "gpt-4o"
   inputTokens  Int
   outputTokens Int
   costUsd      Float
@@ -123,18 +165,28 @@ model AgentCostEvent {
 }
 
 model AgentInterrupt {
-  id        String   @id @default(cuid())
-  agentId   String
-  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  type      String   // "pause", "resume", "stop", "custom"
-  message   String?
-  status    String   @default("pending") // "pending", "delivered", "acknowledged"
-  metadata  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String    @id @default(cuid())
+  agentId        String
+  agent          Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  type           String // "pause", "resume", "stop", "custom"
+  message        String?
+  status         String    @default("pending") // "pending", "delivered", "acknowledged"
+  claimToken     String?   @unique
+  claimOwner     String?
+  claimedAt      DateTime?
+  leaseExpiresAt DateTime?
+  availableAt    DateTime  @default(now())
+  attempts       Int       @default(0)
+  acknowledgedAt DateTime?
+  expiresAt      DateTime?
+  metadata       Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([agentId])
   @@index([agentId, status])
+  @@index([status, availableAt])
+  @@index([leaseExpiresAt])
 }
 
 // ─── Content Pipeline ───────────────────────────────────────────────────────
