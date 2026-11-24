@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma, Project } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { authenticateRequest, hasPermission } from '@/lib/security';
+import { authenticateRequest, hasIdentityScope, hasPermission } from '@/lib/security';
 
 interface EventRequestBody {
   agentName: string;
@@ -19,6 +19,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!hasPermission(principal, 'events:write')) return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
     const body: EventRequestBody = await request.json();
     const { agentName, agentType, type, message, project, metadata } = body;
+
+    if (!(await hasIdentityScope(principal, agentName, project))) return NextResponse.json({ error: 'Agent scope denied' }, { status: 403 });
 
     if (!agentName || !type || !message) {
       return NextResponse.json(

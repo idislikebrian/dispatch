@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma, Project } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { authenticateRequest } from '@/lib/security';
+import { authenticateRequest, hasIdentityScope, hasPermission } from '@/lib/security';
 
 interface CostRequestBody {
   agentName: string;
@@ -16,9 +16,13 @@ interface CostRequestBody {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    const principal = await authenticateRequest(request);
+    if (!principal) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    if (!hasPermission(principal, 'costs:write')) return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
     const body: CostRequestBody = await request.json();
     const { agentName, model, inputTokens, outputTokens, costUsd, eventId, project, metadata } = body;
+
+    if (!(await hasIdentityScope(principal, agentName, project))) return NextResponse.json({ error: 'Agent scope denied' }, { status: 403 });
 
     if (!agentName || !model || inputTokens == null || outputTokens == null || costUsd == null) {
       return NextResponse.json(

@@ -34,6 +34,7 @@ model AuthenticatedIdentity {
   requestNonces    RequestNonce[]
   idempotencyKeys  IdempotencyRecord[]
   auditEvents      IdentityAuditEvent[]
+  enrollmentRequests EnrollmentRequest[]
 
   @@index([active])
 }
@@ -132,6 +133,24 @@ model Agent {
   identity  AuthenticatedIdentity?
 
   @@index([project])
+}
+
+model EnrollmentRequest {
+  id                   String                 @id @default(cuid())
+  agentName            String
+  harness              String
+  project              Project?
+  requestedPermissions Json
+  tokenHash            String                 @unique
+  status               String                 @default("pending")
+  expiresAt            DateTime
+  approvedAt           DateTime?
+  consumedAt           DateTime?
+  identityId           String?
+  identity             AuthenticatedIdentity? @relation(fields: [identityId], references: [id], onDelete: SetNull)
+  createdAt            DateTime               @default(now())
+
+  @@index([status, expiresAt])
 }
 
 model AgentHeartbeat {

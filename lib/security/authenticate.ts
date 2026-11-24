@@ -49,4 +49,11 @@ export function hasPermission(principal: Principal | null, permission: string): 
   return principal?.kind === 'session' || (principal?.kind === 'identity' && principal.permissions.includes(permission)) || false;
 }
 
+export async function hasIdentityScope(principal: Principal | null, agentName: string, project?: string): Promise<boolean> {
+  if (!principal || principal.kind === 'session') return true;
+  const identity = await prisma.authenticatedIdentity.findUnique({ where: { id: principal.id }, include: { agent: true } });
+  if (!identity?.active || (identity.agent && identity.agent.name !== agentName)) return false;
+  return !project || !identity.project || identity.project === project;
+}
+
 export function newIdentitySecret(): string { return randomBytes(32).toString('base64url'); }
