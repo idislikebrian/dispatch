@@ -22,7 +22,7 @@ async function json(response: Response): Promise<any> {
   return value;
 }
 
-async function signed(path: string, method: string, body: unknown, keyId: string, secret: string, nonce = randomUUID(), idempotencyKey?: string): Promise<Response> {
+async function signed(path: string, method: string, body: unknown, keyId: string, secret: string, nonce: string = randomUUID(), idempotencyKey?: string): Promise<Response> {
   const text = method === 'GET' ? '' : JSON.stringify(body);
   const timestamp = String(Date.now());
   return request(path, {

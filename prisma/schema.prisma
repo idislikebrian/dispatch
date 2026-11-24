@@ -25,10 +25,29 @@ model AuthenticatedIdentity {
   lastUsedAt       DateTime?
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
+  agentId          String?             @unique
+  agent            Agent?              @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  project          Project?
+  permissions      Json?
+  revokedAt        DateTime?
+  rotatedAt        DateTime?
   requestNonces    RequestNonce[]
   idempotencyKeys  IdempotencyRecord[]
+  auditEvents      IdentityAuditEvent[]
 
   @@index([active])
+}
+
+model IdentityAuditEvent {
+  id         String                @id @default(cuid())
+  identityId String
+  identity   AuthenticatedIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  action     String
+  keyId      String
+  metadata   Json?
+  createdAt  DateTime              @default(now())
+
+  @@index([identityId, createdAt])
 }
 
 model RequestNonce {
@@ -110,6 +129,7 @@ model Agent {
   events     AgentEvent[]
   costEvents AgentCostEvent[]
   interrupts AgentInterrupt[]
+  identity  AuthenticatedIdentity?
 
   @@index([project])
 }

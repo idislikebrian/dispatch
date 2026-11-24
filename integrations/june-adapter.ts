@@ -27,7 +27,7 @@ export function buildSignedRequest(
   secret: string,
   telemetry: JuneTelemetry,
   nowMs = Date.now(),
-  nonce = randomUUID(),
+  nonce: string = randomUUID(),
 ): DispatchRequest {
   if (!agentId || !secret) throw new Error("agentId and secret are required");
   if (!telemetry.message || telemetry.message.length > 500) throw new Error("message must be 1–500 characters");

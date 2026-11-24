@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma, Project } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { authenticateRequest } from '@/lib/security';
+import { authenticateRequest, hasPermission } from '@/lib/security';
 
 interface EventRequestBody {
   agentName: string;
@@ -14,7 +14,9 @@ interface EventRequestBody {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    const principal = await authenticateRequest(request);
+    if (!principal) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    if (!hasPermission(principal, 'events:write')) return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
     const body: EventRequestBody = await request.json();
     const { agentName, agentType, type, message, project, metadata } = body;
 
