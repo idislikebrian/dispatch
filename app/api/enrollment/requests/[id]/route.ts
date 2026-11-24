@@ -12,7 +12,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const enrollment = await prisma.enrollmentRequest.findUnique({ where: { id } });
   if (!enrollment) return NextResponse.json({ error: 'Enrollment request not found' }, { status: 404 });
   if (enrollment.status !== 'pending' || enrollment.expiresAt <= new Date()) return NextResponse.json({ error: 'Enrollment request is no longer pending' }, { status: 409 });
-  if (body.action === 'reject') { await prisma.enrollmentRequest.update({ where: { id }, data: { status: 'rejected' } }); return NextResponse.json({ id, status: 'rejected' }); }
+  if (body.action === 'reject') { await prisma.enrollmentRequest.update({ where: { id }, data: { status: 'rejected', dedupeKey: null } }); return NextResponse.json({ id, status: 'rejected' }); }
   if (body.action !== 'approve') return NextResponse.json({ error: 'action must be approve or reject' }, { status: 400 });
   const secret = newIdentitySecret(); const keyId = `dsp_${randomBytes(12).toString('hex')}`;
   const permissions = Array.isArray(enrollment.requestedPermissions) ? enrollment.requestedPermissions : [];
