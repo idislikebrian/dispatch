@@ -141,6 +141,7 @@ model EnrollmentRequest {
   harness              String
   project              Project?
   requestedPermissions Json
+  dedupeKey            String?                @unique
   tokenHash            String                 @unique
   status               String                 @default("pending")
   expiresAt            DateTime
