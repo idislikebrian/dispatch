@@ -86,3 +86,13 @@ The cross-harness contract normalizes harness/session identity, execution state,
 The authority model is persisted in `AGENTS.md` and `docs/delegated-authority-policy.md`: P0 read-only, P1 isolated engineering, P2 bounded reversible, P3 owner-authorized production milestone, and P4 individually authorized destructive operation. Objective boundaries, budgets, acceptance criteria, and escalation conditions remain explicit.
 
 Remaining production gates: migration review against the existing hosted schema, deployment/proxy/rate-limit configuration, backward-compatible rollout and rollback rehearsal, dashboard diagnosis with production-equivalent logs, credential provisioning, and explicit production authorization. No live agent control or production mutation occurred.
+
+## milestone 3 — authenticated landing-route release preparation
+
+Production route verification identified a separate client-side defect on the deployed main commit `606b6c6`: the login page pushed authenticated users to `/tasks`, but the actual authenticated route tree defines `/dashboard` and `/dashboard/tasks`; `/tasks` returned a genuine 404. The intended authenticated landing page is `/dashboard`, which is wrapped by the existing authenticated dashboard layout.
+
+Fix commit: `caa5bb7` — login now pushes to `/dashboard`; a route-contract test asserts the target exists and the legacy `/tasks` target is absent. The staging end-to-end harness now also asserts that an authenticated session reaches `/dashboard` with HTTP 200. The fix does not alter session validation or weaken the dashboard auth boundary.
+
+Read-only production probes observed `/tasks` as 404. An unauthenticated `/dashboard` probe returned 500 from the current deployment, so production-equivalent Vercel runtime logs/configuration must be checked during the P3 release gate; this was not treated as solved by the redirect patch. The release package must verify login, session persistence, `/dashboard` navigation, and dashboard access on the deployed commit after promotion.
+
+No production deployment has occurred. P3 approval remains required for promotion; production acceptance is: iPhone login lands directly on a functional `/dashboard`, session persistence survives navigation, unauthenticated access still redirects to `/`, and the deployed commit is verified to contain `caa5bb7` or its release descendant.
