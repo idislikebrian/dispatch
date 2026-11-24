@@ -19,6 +19,7 @@
     "release:check": "tsx scripts/release-provenance.ts --check",
     "release:receipt": "tsx scripts/release-provenance.ts --write artifacts/release-provenance.json",
     "test-agent": "npx tsx scripts/test-agent.ts",
+    "test:security": "npx tsx scripts/test-security.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

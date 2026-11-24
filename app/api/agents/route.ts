@@ -1,9 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { authenticateRequest } from '@/lib/security';
 
 // GET /api/agents — all agents with derived status and last heartbeat timestamp
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     const agents = await prisma.agent.findMany({

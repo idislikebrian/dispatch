@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { authenticateRequest } from '@/lib/security';
 
 type Period = '24h' | '7d' | '30d';
 
@@ -20,6 +21,7 @@ function getPeriodStart(period: Period): Date {
 // Returns ALL agents (including those with zero cost in the window)
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     const { searchParams } = new URL(request.url);
     const periodParam = (searchParams.get('period') ?? '24h') as Period;
     const validPeriods: Period[] = ['24h', '7d', '30d'];

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
+import { authenticateRequest } from '@/lib/security';
 
 interface HeartbeatRequestBody {
   agentName: string;
@@ -11,6 +12,7 @@ interface HeartbeatRequestBody {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     const body: HeartbeatRequestBody = await request.json();
     const { agentName, agentType, status, metadata } = body;
 

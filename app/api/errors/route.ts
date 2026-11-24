@@ -1,9 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { authenticateRequest } from '@/lib/security';
 
 // GET /api/errors — last 50 error events
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     const events = await prisma.agentEvent.findMany({
       where: { type: 'error' },
       orderBy: { createdAt: 'desc' },

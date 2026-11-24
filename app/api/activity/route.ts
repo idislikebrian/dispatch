@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { authenticateRequest } from '@/lib/security';
 
 // GET /api/activity — last 50 events, optional ?agentId= filter
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     const { searchParams } = new URL(request.url);
     const agentId = searchParams.get('agentId');
 
