@@ -16,6 +16,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "test:synthetic": "tsx --test tests/*.test.ts",
     "diagnose:office-500": "tsx scripts/diagnose-office-dashboard-500.ts",
+    "test:staging:e2e": "tsx scripts/test-staging-e2e.ts",
     "release:check": "tsx scripts/release-provenance.ts --check",
     "release:receipt": "tsx scripts/release-provenance.ts --write artifacts/release-provenance.json",
     "test-agent": "npx tsx scripts/test-agent.ts",
