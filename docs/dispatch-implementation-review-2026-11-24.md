@@ -108,3 +108,11 @@ Release configuration changes prepared:
 - `.github/workflows/ci.yml`: Node 24 CI matrix/runtime, synthetic tests, migration inventory, and database-free build.
 
 Local Node `v24.21.0` verification: 14 synthetic tests passed, security tests passed, `db:check` passed for 12 models, and `npm run build` passed. The next preview must prove the Vercel runtime/build path; the prior preview failure was not treated as resolved until a fresh deployment succeeds.
+
+Read-only hosted reconciliation found the legacy tables present but only the
+two historical migrations recorded. The current staging baseline is therefore
+not a drop-in production migration. The exact catalog-to-schema diff is 82
+lines with SHA-256
+`cdc9fa409b9bb77c22ae1f81e86eeb69fc7b3f10c0a90186e69789bd31a48da4`; preparing
+and rehearsing an idempotent production reconciliation migration remains a
+P3/P4 gate. No hosted schema or data was changed.

@@ -157,3 +157,27 @@ configuration, the exact dashboard 500 cause, and any client that still relies
 on the old public behavior. Each is a release blocker until evidenced in
 staging or explicitly accepted by Brian.
 
+## 8. Read-only hosted reconciliation — 2026-11-24
+
+The existing hosted Neon database was inspected without mutation. It contains
+the `Agent`, `AgentHeartbeat`, `AgentEvent`, `AgentCostEvent`, `AgentInterrupt`,
+`ContentItem`, `User`, `Workspace`, and `LogEntry` tables, but
+`_prisma_migrations` records only the two historical migrations:
+
+- `20260220181620_init_user_workspace_logentry`
+- `20260220183955_add_updated_at_cascade`
+
+The staging baseline migration `20261124175650_dispatch_staging_baseline` is
+not recorded as applied. A read-only `prisma migrate diff` from the hosted
+catalog to the current schema produced an 82-line diff, SHA-256
+`cdc9fa409b9bb77c22ae1f81e86eeb69fc7b3f10c0a90186e69789bd31a48da4`. It adds
+the authenticated identity, nonce, and idempotency tables and the new
+interrupt lifecycle columns. Because the hosted database already contains the
+legacy agent tables, the staging baseline cannot be blindly deployed there:
+its create-table operations are not a safe production reconciliation.
+
+Production remains blocked until a reviewed, idempotent reconciliation
+migration is prepared from this exact catalog state, rehearsed against a
+restored clone, and separately authorized. No `migrate deploy`, `db push`,
+schema write, or data write was performed.
+
