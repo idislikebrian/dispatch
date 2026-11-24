@@ -22,7 +22,9 @@ export interface ExecutionEvidence {
   telemetry: { source: TelemetrySource; inputTokens: number | null; outputTokens: number | null; costUsd: number | null };
 }
 
-export function buildExecutionEvidence(command: ClaimedCommand, state: ExecutionState, options: Partial<Omit<ExecutionEvidence, 'commandId' | 'harness' | 'sessionId' | 'toolExecutionId' | 'state'>> = {}): ExecutionEvidence {
+type ExecutionEvidenceOptions = Partial<Pick<ExecutionEvidence, 'sessionId' | 'toolExecutionId' | 'artifactPath' | 'artifactSha256' | 'error' | 'telemetry'>>;
+
+export function buildExecutionEvidence(command: ClaimedCommand, state: ExecutionState, options: ExecutionEvidenceOptions = {}): ExecutionEvidence {
   return {
     commandId: command.id,
     harness: 'openclaw',

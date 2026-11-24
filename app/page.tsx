@@ -30,7 +30,10 @@ export default function HomePage() {
       return;
     }
 
-    router.push("/tasks");
+    // The authenticated route group is rooted at /dashboard. Keep login's
+    // landing target aligned with the actual route tree so mobile clients do
+    // not land on the removed legacy /tasks path.
+    router.push("/dashboard");
   }
 
   return (

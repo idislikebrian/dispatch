@@ -24,7 +24,7 @@ async function json(response: Response): Promise<any> {
   return value;
 }
 
-async function signed(path: string, method: string, body: unknown, keyId: string, secret: string, nonce = randomUUID(), idempotencyKey?: string): Promise<Response> {
+async function signed(path: string, method: string, body: unknown, keyId: string, secret: string, nonce: string = randomUUID(), idempotencyKey?: string): Promise<Response> {
   const text = method === 'GET' ? '' : JSON.stringify(body);
   const timestamp = String(Date.now());
   return request(path, {
@@ -46,6 +46,8 @@ const unauthenticated = await fetch(`${base}/api/agents`);
 assert.equal(unauthenticated.status, 401, 'public agent reads must require authentication');
 
 await json(await request('/api/auth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }) }));
+const dashboard = await request('/dashboard');
+assert.equal(dashboard.status, 200, 'authenticated session must reach the dashboard landing page');
 const identity = await json(await request('/api/auth/identities', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'june-staging' }) }));
 
 const heartbeat = await signed('/api/ingest/heartbeat', 'POST', { agentName: 'june-staging', agentType: 'openclaw', status: 'online', metadata: { synthetic: true } }, identity.keyId, identity.secret);
