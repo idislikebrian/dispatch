@@ -29,9 +29,9 @@ export function buildExecutionEvidence(command: ClaimedCommand, state: Execution
     sessionId: options.sessionId ?? `june-session-${randomUUID()}`,
     toolExecutionId: options.toolExecutionId ?? `synthetic-tool-${randomUUID()}`,
     state,
-    artifactPath: options.artifactPath,
-    artifactSha256: options.artifactSha256,
-    error: options.error,
+    ...(options.artifactPath ? { artifactPath: options.artifactPath } : {}),
+    ...(options.artifactSha256 ? { artifactSha256: options.artifactSha256 } : {}),
+    ...(options.error ? { error: options.error } : {}),
     telemetry: options.telemetry ?? { source: 'unavailable', inputTokens: null, outputTokens: null, costUsd: null },
   };
 }
