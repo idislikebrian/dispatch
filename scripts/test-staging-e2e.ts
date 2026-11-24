@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { signRequest } from '@/lib/security/signing';
+import { buildExecutionEvidence, hashSyntheticArtifact } from '@/integrations/june-harness-adapter';
 
 const base = process.env.BASE_URL ?? 'http://localhost:3100';
 const email = `june-staging-${Date.now()}@synthetic.invalid`;
@@ -68,6 +70,17 @@ assert.equal(firstClaim.interrupts.length, 1, 'command should be claimed exactly
 const secondClaim = await json(await signed(`/api/interrupt?agentId=${agent.id}&leaseMs=5000`, 'GET', {}, identity.keyId, identity.secret));
 assert.equal(secondClaim.interrupts.length, 0, 'active lease must prevent duplicate delivery');
 const claimed = firstClaim.interrupts[0];
+const executionCommand = { id: claimed.id, type: claimed.type, message: claimed.message, claimToken: claimed.claimToken };
+const sessionId = `june-staging-session-${Date.now()}`;
+const toolExecutionId = `synthetic-tool-${Date.now()}`;
+const artifactPath = `.runtime/staging-${claimed.id}.txt`;
+await mkdir('.runtime', { recursive: true });
+const artifactContent = `synthetic output for Dispatch command ${claimed.id}`;
+await writeFile(artifactPath, artifactContent, 'utf8');
+const startedEvidence = buildExecutionEvidence(executionCommand, 'started', { sessionId, toolExecutionId });
+assert.equal((await signed('/api/ingest/event', 'POST', { agentName: 'june-staging', type: 'action', message: 'synthetic command execution started', project: 'Experimental', metadata: startedEvidence }, identity.keyId, identity.secret)).status, 200);
+const completedEvidence = buildExecutionEvidence(executionCommand, 'completed', { sessionId, toolExecutionId, artifactPath, artifactSha256: hashSyntheticArtifact(artifactContent), telemetry: { source: 'measured', inputTokens: 12, outputTokens: 8, costUsd: 0.001 } });
+assert.equal((await signed('/api/ingest/event', 'POST', { agentName: 'june-staging', type: 'action', message: 'synthetic command execution completed', project: 'Experimental', metadata: completedEvidence }, identity.keyId, identity.secret)).status, 200);
 assert.equal((await signed('/api/interrupt', 'PATCH', { id: claimed.id, claimToken: claimed.claimToken, action: 'ack' }, identity.keyId, identity.secret)).status, 200);
 const afterAck = await json(await signed(`/api/interrupt?agentId=${agent.id}`, 'GET', {}, identity.keyId, identity.secret));
 assert.equal(afterAck.interrupts.length, 0, 'acknowledged command must not redeliver');
@@ -76,6 +89,8 @@ const retryCommand = await json(await signed('/api/interrupt', 'POST', { agentNa
 const retryClaim = await json(await signed(`/api/interrupt?agentId=${agent.id}&leaseMs=5000`, 'GET', {}, identity.keyId, identity.secret));
 const retryItem = retryClaim.interrupts.find((item: any) => item.id === retryCommand.id);
 assert.ok(retryItem, 'retry command should be claimed');
+const failedEvidence = buildExecutionEvidence({ id: retryItem.id, type: retryItem.type, message: retryItem.message, claimToken: retryItem.claimToken }, 'failed', { error: 'synthetic tool failure', telemetry: { source: 'unavailable', inputTokens: null, outputTokens: null, costUsd: null } });
+assert.equal((await signed('/api/ingest/event', 'POST', { agentName: 'june-staging', type: 'error', message: 'synthetic command execution failed', project: 'Experimental', metadata: failedEvidence }, identity.keyId, identity.secret)).status, 200);
 assert.equal((await signed('/api/interrupt', 'PATCH', { id: retryItem.id, claimToken: retryItem.claimToken, action: 'retry' }, identity.keyId, identity.secret)).status, 200);
 assert.equal((await json(await signed(`/api/interrupt?agentId=${agent.id}`, 'GET', {}, identity.keyId, identity.secret))).interrupts.length, 0, 'retry backoff should prevent immediate redelivery');
 await new Promise((resolve) => setTimeout(resolve, 1_100));
@@ -88,6 +103,10 @@ const expiringCommand = await json(await signed('/api/interrupt', 'POST', { agen
 await new Promise((resolve) => setTimeout(resolve, 100));
 const afterExpiration = await json(await signed(`/api/interrupt?agentId=${agent.id}`, 'GET', {}, identity.keyId, identity.secret));
 assert.equal(afterExpiration.interrupts.some((item: any) => item.id === expiringCommand.id), false, 'expired command must not be delivered');
+assert.equal(hashSyntheticArtifact(await readFile(artifactPath, 'utf8')), completedEvidence.artifactSha256, 'artifact hash must match completion evidence');
+const activity = await json(await signed(`/api/activity?agentId=${agent.id}`, 'GET', {}, identity.keyId, identity.secret));
+assert.ok(activity.some((item: any) => item.message === 'synthetic command execution completed' && item.metadata?.commandId === claimed.id), 'completion evidence must be readable');
+assert.ok(activity.some((item: any) => item.message === 'synthetic command execution failed' && item.metadata?.commandId === retryCommand.id), 'failure evidence must be readable');
 
 console.log(JSON.stringify({ ok: true, agent: agent.name, eventId: (await event.json()).id, commandId: command.id }));
 }
