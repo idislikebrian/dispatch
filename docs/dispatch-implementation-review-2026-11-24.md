@@ -69,3 +69,20 @@ The missing migration blocker was resolved in isolated infrastructure only. A lo
 - A real staging bug was found and fixed: agent credentials now take precedence over a browser session cookie, preventing replayed or forged agent requests from falling through to human-session authentication.
 
 The lifecycle harness uses only synthetic agent names, messages, and project data. This demonstrates a working isolated staging execution lifecycle, not production readiness. Production promotion still requires migration review, deployment provenance, live service configuration review, and Brian's approval.
+
+## milestone 2 — genuine isolated execution and cross-harness foundation
+
+The June adapter now runs a complete synthetic control loop against the isolated staging deployment. A claimed command is linked to an OpenClaw harness session ID, synthetic tool execution ID, output artifact path and SHA-256, measured test token/cost fields, completion or failure state, and the subsequent acknowledgment or retry. The read-back assertions verify the completion and failure events in Dispatch rather than treating an HTTP response as execution proof.
+
+Integrated commits:
+
+- `7999e33` — June command execution evidence loop and recovery harness.
+- `11085b2` — harness-independent adapter contract, Hermes-shaped isolated stub, and Codex/Claude requirements findings (sidecar source `a44bd45`).
+- `f5af5a9` — P0–P4 delegated authority policy, production migration/deployment plan, and seven synthetic policy tests (sidecar source `4a74023`).
+- `b61aa0e` — adapter evidence contract hardening.
+
+The cross-harness contract normalizes harness/session identity, execution state, command identity, model attribution, token usage, cost, and telemetry source. It preserves `measured`, `provider-reported`, `estimated`, and `unavailable` rather than upgrading missing data. Hermes, Codex CLI, and Claude Code versions were detected locally without credentials, sessions, provider calls, or control requests; no first-class production adapter was inferred.
+
+The authority model is persisted in `AGENTS.md` and `docs/delegated-authority-policy.md`: P0 read-only, P1 isolated engineering, P2 bounded reversible, P3 owner-authorized production milestone, and P4 individually authorized destructive operation. Objective boundaries, budgets, acceptance criteria, and escalation conditions remain explicit.
+
+Remaining production gates: migration review against the existing hosted schema, deployment/proxy/rate-limit configuration, backward-compatible rollout and rollback rehearsal, dashboard diagnosis with production-equivalent logs, credential provisioning, and explicit production authorization. No live agent control or production mutation occurred.
