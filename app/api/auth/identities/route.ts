@@ -6,7 +6,7 @@ import { encryptSecret, newIdentitySecret } from '@/lib/security';
 import { Project, Prisma } from '@prisma/client';
 import { deriveAgentStatus } from '@/lib/agents/status';
 
-const allowedPermissions = ['heartbeat:write', 'events:write', 'costs:write'] as const;
+const allowedPermissions = ['heartbeat:write', 'events:write', 'costs:write', 'telemetry:read'] as const;
 
 function cleanPermissions(value: unknown): string[] {
   if (!Array.isArray(value)) return ['heartbeat:write', 'events:write'];

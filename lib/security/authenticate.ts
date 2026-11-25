@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth';
 import { decryptSecret } from './secret';
 import { isFreshTimestamp, sha256, signRequest, timingSafeSignatureEqual } from './signing';
 
-export type Principal = { kind: 'session'; userId: string } | { kind: 'identity'; id: string; keyId: string; permissions: string[] };
+export type Principal = { kind: 'session'; userId: string } | { kind: 'identity'; id: string; keyId: string; agentId: string | null; permissions: string[] };
 
 export async function authenticateRequest(request: NextRequest): Promise<Principal | null> {
   const keyId = request.headers.get('x-dispatch-key-id');
@@ -42,11 +42,15 @@ export async function authenticateRequest(request: NextRequest): Promise<Princip
     return null;
   }
   await prisma.authenticatedIdentity.update({ where: { id: identity.id }, data: { lastUsedAt: new Date() } });
-  return { kind: 'identity', id: identity.id, keyId: identity.keyId, permissions: Array.isArray(identity.permissions) ? identity.permissions.filter((item): item is string => typeof item === 'string') : [] };
+  return { kind: 'identity', id: identity.id, keyId: identity.keyId, agentId: identity.agentId, permissions: Array.isArray(identity.permissions) ? identity.permissions.filter((item): item is string => typeof item === 'string') : [] };
 }
 
 export function hasPermission(principal: Principal | null, permission: string): boolean {
   return principal?.kind === 'session' || (principal?.kind === 'identity' && principal.permissions.includes(permission)) || false;
+}
+
+export function hasTelemetryReadPermission(principal: Principal | null): boolean {
+  return principal?.kind === 'session' || (principal?.kind === 'identity' && principal.permissions.includes('telemetry:read')) || false;
 }
 
 export async function hasIdentityScope(principal: Principal | null, agentName: string, project?: string): Promise<boolean> {
