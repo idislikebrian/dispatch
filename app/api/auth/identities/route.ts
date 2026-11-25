@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { encryptSecret, newIdentitySecret } from '@/lib/security';
 import { Project, Prisma } from '@prisma/client';
+import { deriveAgentStatus } from '@/lib/agents/status';
 
 const allowedPermissions = ['heartbeat:write', 'events:write', 'costs:write'] as const;
 
@@ -27,7 +28,7 @@ export async function GET(): Promise<NextResponse> {
     id: identity.id, name: identity.name, keyId: identity.keyId, active: identity.active,
     project: identity.project, permissions: identity.permissions ?? [], lastUsedAt: identity.lastUsedAt,
     revokedAt: identity.revokedAt, rotatedAt: identity.rotatedAt,
-    agent: identity.agent ? { id: identity.agent.id, name: identity.agent.name, type: identity.agent.type, project: identity.agent.project, status: identity.agent.heartbeats[0]?.status ?? 'offline', lastHeartbeat: identity.agent.heartbeats[0]?.createdAt ?? null } : null,
+    agent: identity.agent ? { id: identity.agent.id, name: identity.agent.name, type: identity.agent.type, project: identity.agent.project, status: deriveAgentStatus(identity.agent.heartbeats[0]?.status, identity.agent.heartbeats[0]?.createdAt), lastHeartbeat: identity.agent.heartbeats[0]?.createdAt ?? null } : null,
     authenticationHistory: identity.auditEvents.map((event) => ({ action: event.action, keyId: event.keyId, createdAt: event.createdAt })),
   })));
 }
