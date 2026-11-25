@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { authenticateRequest } from '@/lib/security';
+import { deriveAgentStatus } from '@/lib/agents/status';
 
 // GET /api/agents — all agents with derived status and last heartbeat timestamp
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         type: agent.type,
         project: agent.project,
         // Expose the heartbeat status string for the UI
-        status: latestHeartbeat?.status ?? 'offline',
+        status: deriveAgentStatus(latestHeartbeat?.status, latestHeartbeat?.createdAt),
         // Expose last heartbeat timestamp under the key the UI expects
         lastHeartbeat: latestHeartbeat?.createdAt ?? null,
         eventCount24h: agent._count.events,
