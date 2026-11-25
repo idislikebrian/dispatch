@@ -1,6 +1,8 @@
 .container {
   max-width: 1400px;
-  padding: 2rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
 }
 
 .header {
@@ -64,4 +66,6 @@
   .midRow {
     grid-template-columns: 1fr;
   }
+  .container { overflow-x: hidden; }
+  .header { flex-wrap: wrap; }
 }

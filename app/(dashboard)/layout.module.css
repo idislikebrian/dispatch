@@ -20,6 +20,7 @@
 
 .main {
   flex: 1;
-  padding: 1.5rem;
+  min-width: 0;
+  padding: 1.5rem clamp(12px, 3vw, 1.5rem);
   background: hsl(var(--background));
 }
