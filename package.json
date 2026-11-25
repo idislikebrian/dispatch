@@ -12,6 +12,7 @@
     "db:check": "tsx scripts/check-migration-inventory.ts",
     "migration:check": "tsx scripts/migration-release-check.ts",
     "migration:deploy": "tsx scripts/production-migrate.ts",
+    "release:preflight": "tsx scripts/release-preflight.ts",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "test:synthetic": "tsx --test tests/*.test.ts",
