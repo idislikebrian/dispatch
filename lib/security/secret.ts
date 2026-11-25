@@ -8,6 +8,10 @@ function key(): Buffer {
   return value;
 }
 
+export function assertIdentityEncryptionKey(): void {
+  key();
+}
+
 export function encryptSecret(secret: string): string {
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', key(), iv);
