@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { encryptSecret, newIdentitySecret } from '@/lib/security';
+import { assertIdentityEncryptionKey, encryptSecret, newIdentitySecret } from '@/lib/security';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   const session = await getSession();
@@ -15,6 +15,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (enrollment.status !== 'pending' || enrollment.expiresAt <= new Date()) return NextResponse.json({ error: 'Enrollment request is no longer pending', status: enrollment.status }, { status: 409 });
   if (body.action === 'reject') { await prisma.enrollmentRequest.update({ where: { id }, data: { status: 'rejected', dedupeKey: null } }); return NextResponse.json({ id, status: 'rejected' }); }
   if (body.action !== 'approve') return NextResponse.json({ error: 'action must be approve or reject' }, { status: 400 });
+  try { assertIdentityEncryptionKey(); } catch { return NextResponse.json({ error: 'identity enrollment is temporarily unavailable' }, { status: 503 }); }
   const permissions = Array.isArray(enrollment.requestedPermissions) ? enrollment.requestedPermissions : [];
   const result = await prisma.$transaction(async (tx) => {
     const agent = await tx.agent.upsert({ where: { name: enrollment.agentName }, update: { type: enrollment.harness, project: enrollment.project }, create: { name: enrollment.agentName, type: enrollment.harness, project: enrollment.project } });
