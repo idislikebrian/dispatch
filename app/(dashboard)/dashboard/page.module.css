@@ -1,5 +1,7 @@
 .container {
   max-width: 1200px;
+  width: 100%;
+  min-width: 0;
   font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
@@ -9,6 +11,12 @@
   background: linear-gradient(to right, hsl(var(--primary) / 0.05), hsl(var(--primary) / 0.02));
   border-radius: var(--radius);
   border: 1px solid hsl(var(--border));
+}
+
+@media (max-width: 520px) {
+  .hero { padding: 1rem; }
+  .actions { flex-wrap: wrap; }
+  .stats { flex-wrap: wrap; gap: 1rem; }
 }
 
 .title {

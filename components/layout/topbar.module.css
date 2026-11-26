@@ -9,6 +9,7 @@
   position: sticky;
   top: 0;
   z-index: 30;
+  min-width: 0;
 }
 
 .left {
@@ -42,6 +43,10 @@
   .hamburgerButton {
     display: flex;
   }
+
+  .topbar { padding: 0 12px; }
+  .breadcrumb { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .right { flex-shrink: 0; }
 }
 
 /* ── Breadcrumb ── */

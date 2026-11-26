@@ -105,6 +105,26 @@ model LogEntry {
   @@index([createdAt])
 }
 
+model LinearIssueSnapshot {
+  id              String   @id @default(cuid())
+  identifier      String   @unique
+  title           String
+  status          String?
+  teamKey         String?
+  projectName     String?
+  priority        Int?
+  url             String?
+  dueDate         DateTime?
+  sourceUpdatedAt DateTime?
+  archived        Boolean  @default(false)
+  payload         Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([sourceUpdatedAt])
+}
+
 // ─── Agent Telemetry ────────────────────────────────────────────────────────
 
 enum Project {
