@@ -7,10 +7,17 @@ import styles from "./AgentStatusMap.module.css";
 
 interface Agent {
   name: string;
+  type?: string;
+  harness?: string | null;
+  responsibility?: string | null;
   project?: string;
   status: "online" | "active" | "idle" | "waiting" | "error" | "offline" | string;
   lastHeartbeat: string | null;
   eventCount24h?: number;
+  connectivity?: string;
+  telemetryFreshness?: string;
+  executionState?: string;
+  financialMetrics?: string;
 }
 
 function deriveStatus(agent: Agent): string {
@@ -104,6 +111,9 @@ export default function AgentStatusMap() {
                   </span>
                 )}
                 <span className={styles.metaItem}>
+                  {agent.harness ?? agent.type ?? "harness unavailable"}
+                </span>
+                <span className={styles.metaItem}>
                   <ClockCountdown size={12} />
                   {formatHeartbeat(agent.lastHeartbeat)}
                 </span>
@@ -113,6 +123,17 @@ export default function AgentStatusMap() {
                     {agent.eventCount24h.toLocaleString()} events/24h
                   </span>
                 )}
+                <span className={styles.metaItem}>
+                  {agent.connectivity ?? "connectivity unavailable"} · {agent.telemetryFreshness ?? "freshness unavailable"}
+                </span>
+              </div>
+              <div className={styles.cardMeta}>
+                <span className={styles.metaItem}>
+                  execution: {agent.executionState ?? "unavailable"}
+                </span>
+                <span className={styles.metaItem}>
+                  financial: {agent.financialMetrics ?? "unavailable"}
+                </span>
               </div>
             </div>
           );

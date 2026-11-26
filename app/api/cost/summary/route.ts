@@ -31,6 +31,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Fetch all agents so we always return every agent (even with zero cost)
     const allAgents = await prisma.agent.findMany({
+      where: { isSynthetic: false },
       select: { id: true, name: true, project: true },
     });
 

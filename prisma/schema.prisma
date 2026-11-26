@@ -139,12 +139,16 @@ enum Project {
 }
 
 model Agent {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  type      String // e.g. "openclaw", "subagent", "cron"
-  project   Project?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  name             String   @unique
+  type             String // e.g. "openclaw", "subagent", "cron"
+  project          Project?
+  isSynthetic      Boolean  @default(false)
+  responsibility   String?
+  harness          String?
+  objectiveRef     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   heartbeats AgentHeartbeat[]
   events     AgentEvent[]
@@ -238,6 +242,11 @@ model AgentInterrupt {
   availableAt    DateTime  @default(now())
   attempts       Int       @default(0)
   acknowledgedAt DateTime?
+  deliveryState  String   @default("requested") // requested, delivered, acknowledged, executed, failed, unavailable
+  deliveredAt    DateTime?
+  executedAt     DateTime?
+  failedAt       DateTime?
+  failureReason  String?
   expiresAt      DateTime?
   metadata       Json?
   createdAt      DateTime  @default(now())
