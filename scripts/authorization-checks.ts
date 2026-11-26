@@ -66,6 +66,8 @@ export async function runAuthorizationChecks(options: CheckOptions): Promise<{ p
     const passwordHash = await hashPassword(password);
     await prisma.user.upsert({ where: { id }, update: { passwordHash }, create: { id, email, passwordHash } });
     const result = await expect('fixture login', 200, {}, 'POST', '/api/auth/login', { body: { email, password } });
+    // The target must be reading the database the fixtures were written to.
+    if (result.status !== 200 || !result.cookie) throw new Error('fixture login failed: check that the target uses this database; stopping');
     return { cookie: result.cookie };
   }
 

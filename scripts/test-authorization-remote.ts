@@ -3,14 +3,15 @@
 import { runAuthorizationChecks } from './authorization-checks';
 
 async function main(): Promise<void> {
-  const { BASE_URL, DATABASE_URL, DISPATCH_ENROLLMENT_SECRET, DISPATCH_PROTECTION_BYPASS } = process.env;
+  const { BASE_URL, DATABASE_URL, DISPATCH_ENROLLMENT_SECRET, VERCEL_TRUSTED_OIDC_TOKEN } = process.env;
   if (!BASE_URL || !DATABASE_URL) throw new Error('BASE_URL and DATABASE_URL are required');
   if (new URL(BASE_URL).hostname === 'dispatch-taupe.vercel.app') throw new Error('refusing to run against production');
   const result = await runAuthorizationChecks({
     base: BASE_URL.replace(/\/$/, ''), databaseUrl: DATABASE_URL,
     interrupts: process.env.EXPECT_INTERRUPTS === 'true', agentEnrollment: process.env.EXPECT_AGENT_ENROLLMENT === 'true',
     enrollmentSecret: DISPATCH_ENROLLMENT_SECRET || null, linearConfigured: process.env.EXPECT_LINEAR === 'true', allowFixtureDelete: false,
-    headers: DISPATCH_PROTECTION_BYPASS ? { 'x-vercel-protection-bypass': DISPATCH_PROTECTION_BYPASS } : undefined,
+    // Passes Vercel Deployment Protection with a short-lived token; no bypass secret.
+    headers: VERCEL_TRUSTED_OIDC_TOKEN ? { 'x-vercel-trusted-oidc-idp-token': VERCEL_TRUSTED_OIDC_TOKEN } : undefined,
   });
   for (const failure of result.failed) console.error(`FAIL ${failure}`);
   console.log(`authorization checks: ${result.passed} passed, ${result.failed.length} failed`);
