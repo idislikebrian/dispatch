@@ -13,6 +13,13 @@ export interface JuneTelemetry {
   requestId?: string;
 }
 
+/** The two identifiers are different values: the key id selects the credential,
+ * the agent name is what that credential is bound to. */
+export interface DispatchIdentity {
+  keyId: string;
+  agentName: string;
+}
+
 export interface DispatchRequest {
   url: string;
   body: string;
@@ -26,16 +33,16 @@ export interface DispatchRequest {
  */
 export function buildSignedRequest(
   endpoint: string,
-  agentId: string,
+  identity: DispatchIdentity,
   secret: string,
   telemetry: JuneTelemetry,
   nowMs = Date.now(),
   nonce: string = randomUUID(),
 ): DispatchRequest {
-  if (!agentId || !secret) throw new Error("agentId and secret are required");
+  if (!identity.keyId || !identity.agentName || !secret) throw new Error("keyId, agentName and secret are required");
   if (!telemetry.message || telemetry.message.length > 500) throw new Error("message must be 1–500 characters");
   const body = JSON.stringify({
-    agentName: agentId,
+    agentName: identity.agentName,
     agentType: telemetry.agentType ?? "openclaw",
     type: telemetry.type,
     message: telemetry.message,
@@ -51,7 +58,7 @@ export function buildSignedRequest(
     body,
     headers: {
       "content-type": "application/json",
-      "x-dispatch-key-id": agentId,
+      "x-dispatch-key-id": identity.keyId,
       "x-dispatch-timestamp": timestamp,
       "x-dispatch-nonce": nonce,
       "x-dispatch-signature": signature,

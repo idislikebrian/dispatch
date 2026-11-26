@@ -7,6 +7,7 @@ import { hashPassword } from '../lib/auth/password';
 import { assertDisposableDatabase } from '../lib/db/destructive-guard';
 import { createInvite } from '../lib/security/invite';
 import { signRequest } from '../lib/security/signing';
+import { buildSignedRequest } from '../integrations/june-adapter';
 
 export const OPERATOR_ID = 'qa-authz-operator';
 export const REMOVABLE_OPERATOR_ID = 'qa-authz-operator-removable';
@@ -124,6 +125,9 @@ export async function runAuthorizationChecks(options: CheckOptions): Promise<{ p
     const nonce = randomUUID();
     await expect('first use of nonce', 200, full, 'POST', '/api/ingest/heartbeat', { body: bodies(full.agent.name).heartbeat, nonce });
     await expect('replayed nonce', 401, full, 'POST', '/api/ingest/heartbeat', { body: bodies(full.agent.name).heartbeat, nonce });
+    const built = buildSignedRequest(`${options.base}/api/ingest/event`, { keyId: full.agent.keyId, agentName: full.agent.name }, full.agent.secret, { type: 'info', message: `qa-authz adapter ${run}`, project: 'Experimental' });
+    const sent = await fetch(built.url, { method: 'POST', headers: { ...options.headers, ...built.headers }, body: built.body, redirect: 'manual' });
+    check('signed request helper is accepted', sent.status === 200, `got ${sent.status}`);
     check('no spoofed agent was created', (await prisma.agent.count({ where: { name: `qa-authz-unknown-${run}` } })) === 0);
 
     // Telemetry reads: operator sees all, agent sees itself.
