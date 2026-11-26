@@ -8,7 +8,7 @@ export interface LinearIssue {
   priority: number | null;
   dueDate: string | null;
   updatedAt: string;
-  archived: boolean;
+  archivedAt: string | null;
   state: { name: string } | null;
   team: { key: string } | null;
   project: { name: string } | null;
@@ -16,7 +16,7 @@ export interface LinearIssue {
 
 const QUERY = `query DispatchLinearSync($after: String, $filter: IssueFilter) {
   issues(first: 50, after: $after, filter: $filter, orderBy: updatedAt) {
-    nodes { identifier title url priority dueDate updatedAt archived
+    nodes { identifier title url priority dueDate updatedAt archivedAt
       state { name } team { key } project { name }
     }
     pageInfo { hasNextPage endCursor }
@@ -63,14 +63,14 @@ export async function syncLinearIssues(issues: LinearIssue[]): Promise<{ written
         create: {
           identifier: issue.identifier, title: issue.title, url: issue.url,
           priority: issue.priority, dueDate: issue.dueDate ? new Date(issue.dueDate) : null,
-          sourceUpdatedAt: new Date(issue.updatedAt), archived: issue.archived,
+          sourceUpdatedAt: new Date(issue.updatedAt), archived: Boolean(issue.archivedAt),
           status: issue.state?.name ?? null, teamKey: issue.team?.key ?? null,
           projectName: issue.project?.name ?? null, payload: issue as unknown as Prisma.InputJsonValue,
         },
         update: {
           title: issue.title, url: issue.url, priority: issue.priority,
           dueDate: issue.dueDate ? new Date(issue.dueDate) : null,
-          sourceUpdatedAt: new Date(issue.updatedAt), archived: issue.archived,
+          sourceUpdatedAt: new Date(issue.updatedAt), archived: Boolean(issue.archivedAt),
           status: issue.state?.name ?? null, teamKey: issue.team?.key ?? null,
           projectName: issue.project?.name ?? null, payload: issue as unknown as Prisma.InputJsonValue,
         },
@@ -80,6 +80,6 @@ export async function syncLinearIssues(issues: LinearIssue[]): Promise<{ written
       const result = await tx.linearIssueSnapshot.updateMany({ where: { identifier: { notIn: [...identifiers] }, archived: false }, data: { archived: true } });
       archived = result.count;
     }
-  });
+  }, { timeout: 120_000 });
   return { written: issues.length, archived };
 }
