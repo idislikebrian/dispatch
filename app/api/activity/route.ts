@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { authenticateRequest, hasTelemetryReadPermission } from '@/lib/security';
+import { authorizeTelemetryRead } from '@/lib/security';
 
 // GET /api/activity — last 50 events, optional ?agentId= filter
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const principal = await authenticateRequest(request);
-    if (!principal) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    if (!hasTelemetryReadPermission(principal)) return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+    const auth = await authorizeTelemetryRead(request);
+    if (auth.denied) return auth.denied;
+    const { agentScope } = auth.actor;
     const { searchParams } = new URL(request.url);
     const requestedAgentId = searchParams.get('agentId');
-    const agentId = principal.kind === 'identity' ? principal.agentId : requestedAgentId;
-    if (principal.kind === 'identity' && !agentId) return NextResponse.json({ error: 'Identity has no agent scope' }, { status: 403 });
-    if (principal.kind === 'identity' && requestedAgentId && requestedAgentId !== agentId) return NextResponse.json({ error: 'Agent scope denied' }, { status: 403 });
+    if (agentScope && requestedAgentId && requestedAgentId !== agentScope) return NextResponse.json({ error: 'Agent scope denied' }, { status: 403 });
+    const agentId = agentScope ?? requestedAgentId;
     const includeSynthetic = searchParams.get('includeSynthetic') === 'true';
 
     const events = await prisma.agentEvent.findMany({

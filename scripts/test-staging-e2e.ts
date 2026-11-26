@@ -5,8 +5,10 @@ import { signRequest } from '@/lib/security/signing';
 import { buildExecutionEvidence, hashSyntheticArtifact } from '@/integrations/june-harness-adapter';
 
 const base = process.env.BASE_URL ?? 'http://localhost:3100';
-const email = `june-staging-${Date.now()}@synthetic.invalid`;
-const password = 'synthetic-only-password';
+// A pre-provisioned operator on the isolated target, which must also run with
+// DISPATCH_INTERRUPTS_ENABLED=true.
+const email = process.env.E2E_OPERATOR_EMAIL ?? '';
+const password = process.env.E2E_OPERATOR_PASSWORD ?? '';
 let cookie = '';
 
 async function request(path: string, init: RequestInit = {}): Promise<Response> {
@@ -41,13 +43,20 @@ async function signed(path: string, method: string, body: unknown, keyId: string
   });
 }
 
+async function operatorCommand(command: Record<string, unknown>): Promise<any> {
+  return json(await request('/api/interrupt', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(command) }));
+}
+
 async function main(): Promise<void> {
+if (!email || !password) throw new Error('E2E_OPERATOR_EMAIL and E2E_OPERATOR_PASSWORD are required');
+if (new URL(base).hostname === 'dispatch-taupe.vercel.app') throw new Error('refusing to run against production');
 const unauthenticated = await fetch(`${base}/api/agents`);
 assert.equal(unauthenticated.status, 401, 'public agent reads must require authentication');
 
-await json(await request('/api/auth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }) }));
+const firstLogin = await request('/api/auth/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }) });
+assert.equal(firstLogin.status, 200, 'operator credentials must establish a session');
 const dashboard = await request('/dashboard');
-assert.equal(dashboard.status, 200, 'authenticated session must reach the dashboard landing page');
+assert.equal(dashboard.status, 200, 'operator session must reach the dashboard landing page');
 const logout = await request('/api/auth/logout', { method: 'POST' });
 assert.equal(logout.status, 200, 'logout must clear the session');
 const protectedAfterLogout = await fetch(`${base}/dashboard`, { redirect: 'manual' });
@@ -63,7 +72,7 @@ const dashboardAfterLogin = await request('/dashboard');
 assert.equal(dashboardAfterLogin.status, 200, 'login session must reach the dashboard');
 const tasksPage = await request('/dashboard/tasks');
 assert.equal(tasksPage.status, 200, 'authenticated navigation must reach dashboard tasks');
-const identity = await json(await request('/api/auth/identities', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'june-staging' }) }));
+const identity = await json(await request('/api/auth/identities', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'june-staging', permissions: ['heartbeat:write', 'events:write', 'telemetry:read', 'interrupts:claim'] }) }));
 
 const heartbeat = await signed('/api/ingest/heartbeat', 'POST', { agentName: 'june-staging', agentType: 'openclaw', status: 'online', metadata: { synthetic: true } }, identity.keyId, identity.secret);
 assert.equal(heartbeat.status, 200);
@@ -81,7 +90,7 @@ const agents = await json(await signed('/api/agents', 'GET', {}, identity.keyId,
 const agent = agents.find((value: any) => value.name === 'june-staging');
 assert.ok(agent, 'agent should be visible through authenticated read');
 
-const command = await json(await signed('/api/interrupt', 'POST', { agentName: 'june-staging', type: 'summarize', message: 'synthetic command' }, identity.keyId, identity.secret));
+const command = await operatorCommand({ agentName: 'june-staging', type: 'summarize', message: 'synthetic command' });
 const firstClaim = await json(await signed(`/api/interrupt?agentId=${agent.id}&leaseMs=5000`, 'GET', {}, identity.keyId, identity.secret));
 assert.equal(firstClaim.interrupts.length, 1, 'command should be claimed exactly once');
 const secondClaim = await json(await signed(`/api/interrupt?agentId=${agent.id}&leaseMs=5000`, 'GET', {}, identity.keyId, identity.secret));
@@ -102,7 +111,7 @@ assert.equal((await signed('/api/interrupt', 'PATCH', { id: claimed.id, claimTok
 const afterAck = await json(await signed(`/api/interrupt?agentId=${agent.id}`, 'GET', {}, identity.keyId, identity.secret));
 assert.equal(afterAck.interrupts.length, 0, 'acknowledged command must not redeliver');
 
-const retryCommand = await json(await signed('/api/interrupt', 'POST', { agentName: 'june-staging', type: 'pause', message: 'synthetic retry' }, identity.keyId, identity.secret));
+const retryCommand = await operatorCommand({ agentName: 'june-staging', type: 'pause', message: 'synthetic retry' });
 const retryClaim = await json(await signed(`/api/interrupt?agentId=${agent.id}&leaseMs=5000`, 'GET', {}, identity.keyId, identity.secret));
 const retryItem = retryClaim.interrupts.find((item: any) => item.id === retryCommand.id);
 assert.ok(retryItem, 'retry command should be claimed');
@@ -116,7 +125,7 @@ const retriedItem = retryAgain.interrupts.find((item: any) => item.id === retryC
 assert.ok(retriedItem, 'retry command should become claimable after backoff');
 assert.equal((await signed('/api/interrupt', 'PATCH', { id: retriedItem.id, claimToken: retriedItem.claimToken, action: 'ack' }, identity.keyId, identity.secret)).status, 200);
 
-const expiringCommand = await json(await signed('/api/interrupt', 'POST', { agentName: 'june-staging', type: 'stop', message: 'synthetic expiration', expiresAt: new Date(Date.now() + 50).toISOString() }, identity.keyId, identity.secret));
+const expiringCommand = await operatorCommand({ agentName: 'june-staging', type: 'stop', message: 'synthetic expiration', expiresAt: new Date(Date.now() + 50).toISOString() });
 await new Promise((resolve) => setTimeout(resolve, 100));
 const afterExpiration = await json(await signed(`/api/interrupt?agentId=${agent.id}`, 'GET', {}, identity.keyId, identity.secret));
 assert.equal(afterExpiration.interrupts.some((item: any) => item.id === expiringCommand.id), false, 'expired command must not be delivered');

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { authenticateRequest, hasIdentityScope, hasPermission } from '@/lib/security';
+import { authorizeAgent, hasIdentityScope } from '@/lib/security';
 
 interface HeartbeatRequestBody {
   agentName: string;
@@ -12,13 +12,12 @@ interface HeartbeatRequestBody {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const principal = await authenticateRequest(request);
-    if (!principal) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    if (!hasPermission(principal, 'heartbeat:write')) return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+    const auth = await authorizeAgent(request, 'heartbeat:write');
+    if (auth.denied) return auth.denied;
     const body: HeartbeatRequestBody = await request.json();
     const { agentName, agentType, status, metadata } = body;
 
-    if (!(await hasIdentityScope(principal, agentName))) return NextResponse.json({ error: 'Agent scope denied' }, { status: 403 });
+    if (!(await hasIdentityScope(auth.actor.principal, agentName))) return NextResponse.json({ error: 'Agent scope denied' }, { status: 403 });
 
     if (!agentName || !status) {
       return NextResponse.json(

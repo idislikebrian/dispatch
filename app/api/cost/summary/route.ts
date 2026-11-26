@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { authenticateRequest } from '@/lib/security';
+import { authorizeTelemetryRead } from '@/lib/security';
 
 type Period = '24h' | '7d' | '30d';
 
@@ -21,7 +21,9 @@ function getPeriodStart(period: Period): Date {
 // Returns all genuine agents. Missing cost evidence is null, never a fake zero.
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    const auth = await authorizeTelemetryRead(request);
+    if (auth.denied) return auth.denied;
+    const { agentScope } = auth.actor;
     const { searchParams } = new URL(request.url);
     const periodParam = (searchParams.get('period') ?? '24h') as Period;
     const validPeriods: Period[] = ['24h', '7d', '30d'];
@@ -31,14 +33,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Fetch all agents so we always return every agent (even with zero cost)
     const allAgents = await prisma.agent.findMany({
-      where: { isSynthetic: false },
+      where: { isSynthetic: false, ...(agentScope ? { id: agentScope } : {}) },
       select: { id: true, name: true, project: true },
     });
 
     // Aggregate cost events grouped by agentId + project
     const costGroups = await prisma.agentCostEvent.groupBy({
       by: ['agentId', 'project'],
-      where: { createdAt: { gte: since } },
+      where: { createdAt: { gte: since }, ...(agentScope ? { agentId: agentScope } : {}) },
       _sum: {
         costUsd: true,
         inputTokens: true,

@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { authenticateRequest, hasTelemetryReadPermission } from '@/lib/security';
+import { authorizeTelemetryRead } from '@/lib/security';
 import { deriveOfficeAgentState } from '@/lib/telemetry/office';
 
 // GET /api/agents — all agents with derived status and last heartbeat timestamp
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const principal = await authenticateRequest(request);
-    if (!principal) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    if (!hasTelemetryReadPermission(principal)) return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+    const auth = await authorizeTelemetryRead(request);
+    if (auth.denied) return auth.denied;
+    const { agentScope } = auth.actor;
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const includeSynthetic = new URL(request.url).searchParams.get('includeSynthetic') === 'true';
 
     const agents = await prisma.agent.findMany({
       where: {
-        ...(principal.kind === 'identity' && principal.agentId ? { id: principal.agentId } : {}),
+        ...(agentScope ? { id: agentScope } : {}),
         ...(includeSynthetic ? {} : { isSynthetic: false }),
       },
       orderBy: { name: 'asc' },

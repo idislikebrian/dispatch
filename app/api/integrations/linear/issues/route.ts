@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { authorizeOperator } from '@/lib/security';
 import { prisma } from '@/lib/db';
 
-export async function GET(): Promise<NextResponse> {
-  const session = await getSession();
-  if (!session.isLoggedIn || !session.userId) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const auth = await authorizeOperator(request);
+  if (auth.denied) return auth.denied;
   const issues = await prisma.linearIssueSnapshot.findMany({ orderBy: [{ archived: 'asc' }, { updatedAt: 'desc' }], take: 250 });
   return NextResponse.json(issues, { status: 200 });
 }

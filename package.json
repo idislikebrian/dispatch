@@ -22,7 +22,10 @@
     "release:receipt": "tsx scripts/release-provenance.ts --write artifacts/release-provenance.json",
     "test-agent": "npx tsx scripts/test-agent.ts",
     "test:security": "npx tsx scripts/test-security.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "enroll:invite": "tsx scripts/create-enrollment-invite.ts",
+    "test:authz": "tsx scripts/test-authorization-local.ts",
+    "test:authz:remote": "tsx scripts/test-authorization-remote.ts"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -47,9 +50,6 @@
   },
   "engines": {
     "node": "24.x"
-  },
-  "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
   },
   "overrides": {
     "postcss": "^8.5.23"

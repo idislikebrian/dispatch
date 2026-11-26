@@ -45,18 +45,11 @@ export async function authenticateRequest(request: NextRequest): Promise<Princip
   return { kind: 'identity', id: identity.id, keyId: identity.keyId, agentId: identity.agentId, permissions: Array.isArray(identity.permissions) ? identity.permissions.filter((item): item is string => typeof item === 'string') : [] };
 }
 
-export function hasPermission(principal: Principal | null, permission: string): boolean {
-  return principal?.kind === 'session' || (principal?.kind === 'identity' && principal.permissions.includes(permission)) || false;
-}
-
-export function hasTelemetryReadPermission(principal: Principal | null): boolean {
-  return principal?.kind === 'session' || (principal?.kind === 'identity' && principal.permissions.includes('telemetry:read')) || false;
-}
-
+// Ingestion scope. Only a bound agent credential may write, and only as itself.
 export async function hasIdentityScope(principal: Principal | null, agentName: string, project?: string): Promise<boolean> {
-  if (!principal || principal.kind === 'session') return true;
+  if (principal?.kind !== 'identity') return false;
   const identity = await prisma.authenticatedIdentity.findUnique({ where: { id: principal.id }, include: { agent: true } });
-  if (!identity?.active || (identity.agent && identity.agent.name !== agentName)) return false;
+  if (!identity?.active || !identity.agent || identity.agent.name !== agentName) return false;
   return !project || !identity.project || identity.project === project;
 }
 

@@ -137,6 +137,12 @@ vercel
 
 ---
 
+### Authorization settings
+
+Set `DISPATCH_OPERATOR_USER_IDS` before deploying to production; the release
+preflight fails without it. The optional settings and the access matrix are in
+[docs/authorization.md](docs/authorization.md).
+
 ## Database Setup on Neon
 
 1. Create a new project at [neon.tech](https://neon.tech)

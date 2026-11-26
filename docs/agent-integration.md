@@ -4,6 +4,12 @@ Dispatch is an **observation-only** system. It does not execute agents, schedule
 
 ---
 
+## Authentication
+
+Every endpoint requires a signed agent identity bound to the agent named in the
+request. Interrupt endpoints also require the `interrupts:claim` permission and
+are refused unless interrupts are enabled. See [authorization.md](authorization.md).
+
 ## Endpoints
 
 ### Heartbeat
@@ -109,7 +115,7 @@ Returns any pending interrupts for the agent and marks them as delivered. Agents
 
 ### Sending Interrupts
 
-Operators can send commands to agents via the Interrupt Panel, or programmatically:
+When interrupts are enabled, a signed-in operator can send commands via the Interrupt Panel (agent credentials cannot create them):
 
 ```
 POST /api/interrupt
@@ -169,4 +175,4 @@ BASE_URL=http://localhost:3001 npm run test-agent
 - Dispatch does **not** execute agents or control their behavior
 - Interrupts are signals only — the agent is responsible for acting on them
 - All data is append-only; there is no delete API
-- Authentication is not enforced on ingest endpoints by default — restrict at the network or reverse proxy level for production use
+- Authentication is always enforced; unsigned requests are refused

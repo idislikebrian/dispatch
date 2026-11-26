@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ContentStage, Project } from '@prisma/client';
 import { prisma } from '@/lib/db';
+import { authorizeOperator } from '@/lib/security';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/content/summary — Aggregate counts by stage (flat object)
@@ -8,6 +9,8 @@ import { prisma } from '@/lib/db';
 
 async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    const auth = await authorizeOperator(request);
+    if (auth.denied) return auth.denied;
     const { searchParams } = new URL(request.url);
     const projectParam = searchParams.get('project');
 

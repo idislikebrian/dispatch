@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma, ContentPlatform, ContentStage, Project } from '@prisma/client';
 import { prisma } from '@/lib/db';
+import { authorizeOperator } from '@/lib/security';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PATCH /api/content/[id] — Update a content item
@@ -25,6 +26,8 @@ async function PATCH(
   context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
+    const auth = await authorizeOperator(request);
+    if (auth.denied) return auth.denied;
     const { id } = await context.params;
     const body: UpdateContentRequestBody = await request.json();
 

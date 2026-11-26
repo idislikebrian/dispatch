@@ -1,6 +1,13 @@
+import { existsSync } from 'node:fs';
 import { PrismaClient, Project } from '@prisma/client';
+import { assertDisposableDatabase } from '../lib/db/destructive-guard';
 
-const prisma = new PrismaClient();
+// Seeding writes synthetic fixtures over agents by name. Verify the target first,
+// then pin the client to exactly the URL that was verified.
+if (existsSync('.env')) process.loadEnvFile('.env');
+assertDisposableDatabase([process.env.DATABASE_URL], process.env, 'the seed script');
+
+const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
 
 async function main() {
   console.log('🌱 Seeding Dispatch database...');

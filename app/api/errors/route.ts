@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { authenticateRequest } from '@/lib/security';
+import { authorizeTelemetryRead } from '@/lib/security';
 
 // GET /api/errors — last 50 error events
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    const auth = await authorizeTelemetryRead(request);
+    if (auth.denied) return auth.denied;
+    const { agentScope } = auth.actor;
     const includeSynthetic = new URL(request.url).searchParams.get('includeSynthetic') === 'true';
     const events = await prisma.agentEvent.findMany({
       where: {
         type: 'error',
+        ...(agentScope ? { agentId: agentScope } : {}),
         ...(includeSynthetic ? {} : { agent: { isSynthetic: false } }),
       },
       orderBy: { createdAt: 'desc' },
