@@ -144,6 +144,8 @@ model Agent {
   type             String // e.g. "openclaw", "subagent", "cron"
   project          Project?
   isSynthetic      Boolean  @default(false)
+  classification   String   @default("unverified")
+  classificationEvidence String?
   responsibility   String?
   harness          String?
   objectiveRef     String?
@@ -157,6 +159,7 @@ model Agent {
   identity  AuthenticatedIdentity?
 
   @@index([project])
+  @@index([classification])
 }
 
 model EnrollmentRequest {
@@ -256,6 +259,7 @@ model AgentInterrupt {
   @@index([agentId, status])
   @@index([status, availableAt])
   @@index([leaseExpiresAt])
+  @@index([deliveryState])
 }
 
 // ─── Content Pipeline ───────────────────────────────────────────────────────

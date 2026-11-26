@@ -7,7 +7,8 @@ import styles from "./CostPanel.module.css";
 
 interface CostSummaryEntry {
   agentName: string;
-  totalCost: number;
+  totalCost: number | null;
+  costStatus?: "available" | "unavailable";
 }
 
 interface CostSummary {
@@ -30,13 +31,13 @@ type Period = "24h" | "7d" | "30d";
 
 interface CostRow {
   agentName: string;
-  cost24h: number;
-  cost7d: number;
-  cost30d: number;
+  cost24h: number | null;
+  cost7d: number | null;
+  cost30d: number | null;
 }
 
-function fmt(n: number): string {
-  return `$${n.toFixed(2)}`;
+function fmt(n: number | null): string {
+  return n === null ? "—" : `$${n.toFixed(2)}`;
 }
 
 export default function CostPanel() {
@@ -63,13 +64,13 @@ export default function CostPanel() {
 
         const combined: CostRow[] = Array.from(names).map((name) => ({
           agentName: name,
-          cost24h: e24.find((e) => e.agentName === name)?.totalCost ?? 0,
-          cost7d: e7.find((e) => e.agentName === name)?.totalCost ?? 0,
-          cost30d: e30.find((e) => e.agentName === name)?.totalCost ?? 0,
+          cost24h: e24.find((e) => e.agentName === name)?.totalCost ?? null,
+          cost7d: e7.find((e) => e.agentName === name)?.totalCost ?? null,
+          cost30d: e30.find((e) => e.agentName === name)?.totalCost ?? null,
         }));
 
         // Sort by 30d cost descending
-        combined.sort((a, b) => b.cost30d - a.cost30d);
+        combined.sort((a, b) => (b.cost30d ?? -1) - (a.cost30d ?? -1));
 
         setRows(combined);
         setError(null);
@@ -85,9 +86,9 @@ export default function CostPanel() {
     return () => clearInterval(interval);
   }, []);
 
-  const total24h = rows.reduce((s, r) => s + r.cost24h, 0);
-  const total7d = rows.reduce((s, r) => s + r.cost7d, 0);
-  const total30d = rows.reduce((s, r) => s + r.cost30d, 0);
+  const total24h = rows.every((r) => r.cost24h !== null) ? rows.reduce((s, r) => s + (r.cost24h ?? 0), 0) : null;
+  const total7d = rows.every((r) => r.cost7d !== null) ? rows.reduce((s, r) => s + (r.cost7d ?? 0), 0) : null;
+  const total30d = rows.every((r) => r.cost30d !== null) ? rows.reduce((s, r) => s + (r.cost30d ?? 0), 0) : null;
 
   return (
     <div className={styles.panel}>

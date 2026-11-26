@@ -18,7 +18,7 @@ function getPeriodStart(period: Period): Date {
 }
 
 // GET /api/cost/summary — aggregate cost grouped by agent + project, optional ?period=24h|7d|30d
-// Returns ALL agents (including those with zero cost in the window)
+// Returns all genuine agents. Missing cost evidence is null, never a fake zero.
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -80,9 +80,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return {
         agentName: agent.name,
         project: cost?.project ?? agent.project ?? null,
-        totalCost: cost?.totalCost ?? 0,
-        totalInputTokens: cost?.totalInputTokens ?? 0,
-        totalOutputTokens: cost?.totalOutputTokens ?? 0,
+        costStatus: cost ? 'available' : 'unavailable',
+        totalCost: cost?.totalCost ?? null,
+        totalInputTokens: cost?.totalInputTokens ?? null,
+        totalOutputTokens: cost?.totalOutputTokens ?? null,
         eventCount: cost?.eventCount ?? 0,
       };
     });

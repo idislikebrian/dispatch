@@ -57,6 +57,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         responsibility: agent.responsibility,
         harness: agent.harness,
         objectiveRef: agent.objectiveRef,
+        classification: agent.classification,
+        classificationEvidence: agent.classificationEvidence,
         // Expose last heartbeat timestamp under the key the UI expects
         lastHeartbeat: latestHeartbeat?.createdAt ?? null,
         eventCount24h: agent._count.events,

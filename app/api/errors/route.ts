@@ -6,13 +6,17 @@ import { authenticateRequest } from '@/lib/security';
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    const includeSynthetic = new URL(request.url).searchParams.get('includeSynthetic') === 'true';
     const events = await prisma.agentEvent.findMany({
-      where: { type: 'error' },
+      where: {
+        type: 'error',
+        ...(includeSynthetic ? {} : { agent: { isSynthetic: false } }),
+      },
       orderBy: { createdAt: 'desc' },
       take: 50,
       include: {
         agent: {
-          select: { name: true },
+          select: { name: true, isSynthetic: true },
         },
       },
     });

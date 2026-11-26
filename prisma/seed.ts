@@ -8,9 +8,9 @@ async function main() {
   // ─── Agents ────────────────────────────────────────────────────────────────
 
   const agentDefs = [
-    { name: 'OpenClaw', type: 'openclaw', project: Project.Experimental, isSynthetic: true, harness: 'openclaw', responsibility: 'synthetic seed fixture' },
-    { name: 'June', type: 'openclaw', project: Project.Experimental, isSynthetic: true, harness: 'openclaw', responsibility: 'synthetic seed fixture' },
-    { name: 'Kimi Sub-Agent', type: 'subagent', project: Project.Cobalt, isSynthetic: true, harness: 'synthetic', responsibility: 'synthetic seed fixture' },
+    { name: 'OpenClaw', type: 'openclaw', project: Project.Experimental, isSynthetic: true, classification: 'synthetic', classificationEvidence: 'prisma/seed.ts agentDefs', harness: 'openclaw', responsibility: 'synthetic seed fixture' },
+    { name: 'June', type: 'openclaw', project: Project.Experimental, isSynthetic: true, classification: 'synthetic', classificationEvidence: 'prisma/seed.ts agentDefs', harness: 'openclaw', responsibility: 'synthetic seed fixture' },
+    { name: 'Kimi Sub-Agent', type: 'subagent', project: Project.Cobalt, isSynthetic: true, classification: 'synthetic', classificationEvidence: 'prisma/seed.ts agentDefs', harness: 'synthetic', responsibility: 'synthetic seed fixture' },
   ];
 
   const agentRecords: Record<string, string> = {}; // name -> id
@@ -18,7 +18,7 @@ async function main() {
   for (const def of agentDefs) {
     const agent = await prisma.agent.upsert({
       where: { name: def.name },
-      update: { isSynthetic: def.isSynthetic, harness: def.harness, responsibility: def.responsibility },
+      update: { isSynthetic: def.isSynthetic, classification: def.classification, classificationEvidence: def.classificationEvidence, harness: def.harness, responsibility: def.responsibility },
       create: def,
     });
     agentRecords[def.name] = agent.id;

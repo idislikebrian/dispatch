@@ -12,6 +12,9 @@ test("builds a signed public telemetry envelope", () => {
     "nonce-1",
   );
   assert.equal(request.headers["idempotency-key"], "req-1");
+  assert.equal(request.headers["x-dispatch-key-id"], "june-test");
+  assert.match(request.headers["x-dispatch-signature"], /^v1=/);
+  assert.equal(request.headers["x-dispatch-agent"], undefined);
   assert.equal(JSON.parse(request.body).agentName, "june-test");
   assert.equal(verifySignedRequest(request, "synthetic-secret"), true);
 });
