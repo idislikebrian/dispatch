@@ -1,6 +1,13 @@
+import { existsSync } from 'node:fs';
 import { PrismaClient, Project } from '@prisma/client';
+import { assertDisposableDatabase } from '../lib/db/destructive-guard';
 
-const prisma = new PrismaClient();
+// Seeding writes synthetic fixtures over agents by name. Verify the target first,
+// then pin the client to exactly the URL that was verified.
+if (existsSync('.env')) process.loadEnvFile('.env');
+assertDisposableDatabase([process.env.DATABASE_URL], process.env, 'the seed script');
+
+const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL });
 
 async function main() {
   console.log('🌱 Seeding Dispatch database...');
@@ -8,9 +15,9 @@ async function main() {
   // ─── Agents ────────────────────────────────────────────────────────────────
 
   const agentDefs = [
-    { name: 'OpenClaw', type: 'openclaw', project: Project.Experimental },
-    { name: 'June', type: 'openclaw', project: Project.Experimental },
-    { name: 'Kimi Sub-Agent', type: 'subagent', project: Project.Cobalt },
+    { name: 'OpenClaw', type: 'openclaw', project: Project.Experimental, isSynthetic: true, classification: 'synthetic', classificationEvidence: 'prisma/seed.ts agentDefs', harness: 'openclaw', responsibility: 'synthetic seed fixture' },
+    { name: 'June', type: 'openclaw', project: Project.Experimental, isSynthetic: true, classification: 'synthetic', classificationEvidence: 'prisma/seed.ts agentDefs', harness: 'openclaw', responsibility: 'synthetic seed fixture' },
+    { name: 'Kimi Sub-Agent', type: 'subagent', project: Project.Cobalt, isSynthetic: true, classification: 'synthetic', classificationEvidence: 'prisma/seed.ts agentDefs', harness: 'synthetic', responsibility: 'synthetic seed fixture' },
   ];
 
   const agentRecords: Record<string, string> = {}; // name -> id
@@ -18,7 +25,7 @@ async function main() {
   for (const def of agentDefs) {
     const agent = await prisma.agent.upsert({
       where: { name: def.name },
-      update: {},
+      update: { isSynthetic: def.isSynthetic, classification: def.classification, classificationEvidence: def.classificationEvidence, harness: def.harness, responsibility: def.responsibility },
       create: def,
     });
     agentRecords[def.name] = agent.id;

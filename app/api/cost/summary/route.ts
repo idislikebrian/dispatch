@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { authenticateRequest } from '@/lib/security';
+import { authorizeTelemetryRead } from '@/lib/security';
 
 type Period = '24h' | '7d' | '30d';
 
@@ -18,10 +18,12 @@ function getPeriodStart(period: Period): Date {
 }
 
 // GET /api/cost/summary — aggregate cost grouped by agent + project, optional ?period=24h|7d|30d
-// Returns ALL agents (including those with zero cost in the window)
+// Returns all genuine agents. Missing cost evidence is null, never a fake zero.
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    if (!await authenticateRequest(request)) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    const auth = await authorizeTelemetryRead(request);
+    if (auth.denied) return auth.denied;
+    const { agentScope } = auth.actor;
     const { searchParams } = new URL(request.url);
     const periodParam = (searchParams.get('period') ?? '24h') as Period;
     const validPeriods: Period[] = ['24h', '7d', '30d'];
@@ -31,13 +33,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Fetch all agents so we always return every agent (even with zero cost)
     const allAgents = await prisma.agent.findMany({
+      where: { isSynthetic: false, ...(agentScope ? { id: agentScope } : {}) },
       select: { id: true, name: true, project: true },
     });
 
     // Aggregate cost events grouped by agentId + project
     const costGroups = await prisma.agentCostEvent.groupBy({
       by: ['agentId', 'project'],
-      where: { createdAt: { gte: since } },
+      where: { createdAt: { gte: since }, ...(agentScope ? { agentId: agentScope } : {}) },
       _sum: {
         costUsd: true,
         inputTokens: true,
@@ -79,9 +82,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return {
         agentName: agent.name,
         project: cost?.project ?? agent.project ?? null,
-        totalCost: cost?.totalCost ?? 0,
-        totalInputTokens: cost?.totalInputTokens ?? 0,
-        totalOutputTokens: cost?.totalOutputTokens ?? 0,
+        costStatus: cost ? 'available' : 'unavailable',
+        totalCost: cost?.totalCost ?? null,
+        totalInputTokens: cost?.totalInputTokens ?? null,
+        totalOutputTokens: cost?.totalOutputTokens ?? null,
         eventCount: cost?.eventCount ?? 0,
       };
     });

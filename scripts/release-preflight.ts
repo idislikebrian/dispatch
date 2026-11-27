@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { operatorIds } from '../lib/security/config';
 import { decryptSecret, encryptSecret } from '../lib/security/secret';
 
 const required = ['DATABASE_URL', 'SESSION_SECRET', 'DISPATCH_IDENTITY_ENCRYPTION_KEY', 'NEXT_PUBLIC_APP_URL'];
@@ -6,6 +7,8 @@ const required = ['DATABASE_URL', 'SESSION_SECRET', 'DISPATCH_IDENTITY_ENCRYPTIO
 function main(): void {
   const missing = required.filter((name) => !process.env[name]);
   if (missing.length > 0) throw new Error(`required production configuration is missing: ${missing.join(', ')}`);
+  // Without an operator every dashboard and management route refuses everyone.
+  if (process.env.VERCEL_ENV === 'production' && operatorIds().size === 0) throw new Error('required production configuration is missing: DISPATCH_OPERATOR_USER_IDS');
   const key = Buffer.from(process.env.DISPATCH_IDENTITY_ENCRYPTION_KEY!, 'base64');
   if (key.length !== 32) throw new Error('DISPATCH_IDENTITY_ENCRYPTION_KEY must decode to exactly 32 bytes');
   const probe = 'dispatch-release-preflight';

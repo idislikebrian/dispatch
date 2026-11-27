@@ -3,3 +3,7 @@ export * from './secret';
 export * from './authenticate';
 export * from './lease';
 export * from './idempotency';
+export * from './permissions';
+export * from './config';
+export * from './invite';
+export * from './authorize';

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma, ContentPlatform, ContentStage, OwnerType, Project } from '@prisma/client';
 import { prisma } from '@/lib/db';
+import { authorizeOperator } from '@/lib/security';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/content — Create a content item
@@ -29,6 +30,8 @@ function isValidEnum<T extends Record<string, unknown>>(
 
 async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const auth = await authorizeOperator(request);
+    if (auth.denied) return auth.denied;
     const body: CreateContentRequestBody = await request.json();
     const {
       title,
@@ -135,6 +138,8 @@ async function POST(request: NextRequest): Promise<NextResponse> {
 
 async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    const auth = await authorizeOperator(request);
+    if (auth.denied) return auth.denied;
     const { searchParams } = new URL(request.url);
     const stageParam = searchParams.get('stage');
     const platformParam = searchParams.get('platform');

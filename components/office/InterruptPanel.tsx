@@ -87,6 +87,9 @@ export default function InterruptPanel() {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <p className={styles.optional}>
+          control actions disabled until delivery, acknowledgement, execution, and failure receipts are wired to a verified agent harness
+        </p>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="interrupt-agent">
@@ -98,6 +101,7 @@ export default function InterruptPanel() {
               value={agentName}
               onChange={(e) => setAgentName(e.target.value)}
               required
+              disabled
             >
               {agents.length === 0 && (
                 <option value="" disabled>
@@ -121,6 +125,7 @@ export default function InterruptPanel() {
               className={styles.select}
               value={commandType}
               onChange={(e) => setCommandType(e.target.value as CommandType)}
+              disabled
             >
               {COMMAND_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -141,6 +146,7 @@ export default function InterruptPanel() {
               placeholder="Additional payload…"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              disabled
             />
           </div>
 
@@ -159,7 +165,7 @@ export default function InterruptPanel() {
 
           <Button
             type="submit"
-            disabled={submitting || !agentName}
+            disabled
             className={styles.submitBtn}
           >
             {submitting ? "Sending…" : "Send Interrupt"}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma, Project } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { authenticateRequest, hasIdentityScope, hasPermission } from '@/lib/security';
+import { authorizeAgent, hasIdentityScope } from '@/lib/security';
 
 interface CostRequestBody {
   agentName: string;
@@ -16,13 +16,12 @@ interface CostRequestBody {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const principal = await authenticateRequest(request);
-    if (!principal) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    if (!hasPermission(principal, 'costs:write')) return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+    const auth = await authorizeAgent(request, 'costs:write');
+    if (auth.denied) return auth.denied;
     const body: CostRequestBody = await request.json();
     const { agentName, model, inputTokens, outputTokens, costUsd, eventId, project, metadata } = body;
 
-    if (!(await hasIdentityScope(principal, agentName, project))) return NextResponse.json({ error: 'Agent scope denied' }, { status: 403 });
+    if (!(await hasIdentityScope(auth.actor.principal, agentName, project))) return NextResponse.json({ error: 'Agent scope denied' }, { status: 403 });
 
     if (!agentName || !model || inputTokens == null || outputTokens == null || costUsd == null) {
       return NextResponse.json(
@@ -37,6 +36,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       update: { updatedAt: new Date() },
       create: { name: agentName, type: 'openclaw' },
     });
+
+    // A cost record may only be attached to the same agent's event.
+    if (eventId) {
+      const event = await prisma.agentEvent.findUnique({ where: { id: eventId }, select: { agentId: true } });
+      if (event?.agentId !== agent.id) return NextResponse.json({ error: 'Event scope denied' }, { status: 403 });
+    }
 
     // Create cost event record
     const costEvent = await prisma.agentCostEvent.create({
